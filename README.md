@@ -1,6 +1,6 @@
 <div align="center">
-  <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/icon.webp">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/icon.png">
+    <img src="icon.png" alt="Logo" width="80" height="80">
   </a>
 
   <h1 align="center">San Daan?</h1>
@@ -8,6 +8,13 @@
   <h3 align="center">
     🚕 A mobile app for commuters, by commuters. 🚕
   </h3>
+  <p align="center">
+    <b>CS-1202</b> <br>
+    Capinpin, Kobe Andrew <br>
+    Cuarto, Mico Raphael <br>
+    Jocson, Vladimir <br>
+    Penuliar, Alexander Guile
+  </p>
   <br>
 </div>
 
@@ -26,7 +33,6 @@
     <li><a href="#📋-planned-features">Planned Features</a></li>
     <li><a href="#💻-technical-requirements">Technical Requirements</a></li>
     <li><a href="#🔭-scope-of-the-project">Scope of the Project</a></li>
-    <li><a href="#👩‍💻-project-team">Project Team</a></li>
   </ol>
 </details>
 
@@ -115,11 +121,3 @@ To speed up and improve the development of the mobile application, the developer
 The aim of the project is to develop an app-based navigation system to help commuters in Batangas City access real-time information on public transportation schedules, traffic conditions, and alternative route suggestions. The app will be accessible to both public and private transportation users and will feature a community-powered planning feature for users to customize their own transport route based on their preferences.
 
 However, the accuracy of the data in the app, such as traffic and transportation schedules, is dependent on the reliability of the data sources. The app will only be available on Android devices, limiting the accessibility for some users who may not have access to this technology. Additionally, features such as lane guidance, street view, and voice command will not be included in the initial release of the app. These limitations will be taken into account during the development process, and efforts will be made to ensure the app is as reliable and accessible as possible.
-
-
-## 👩‍💻 Project Team
-
-* Capinpin, Kobe Andrew
-* Cuarto, Mico Raphael
-* Jocson, Vladimir
-* Penuliar, Alexander Guile
