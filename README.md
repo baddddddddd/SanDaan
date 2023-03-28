@@ -51,7 +51,17 @@ Furthermore, the app-based navigation system can contribute to achieving the Sus
 
 Despite the rapid advancement of technology and the information we have access to, many people still lack accessible information about sustainable transportation. Public transit remains the primary means of transportation for many, making it crucial to provide easily accessible information on options that support SDGs 11 and 13.
 
+<br>
+<a href="https://sdgs.un.org/goals/goal11">
+  <img src="xjirn7s3.png" alt="SDG 11">
+</a>
+
 SDG 11 emphasizes the need for more inclusive and sustainable cities and communities, with a focus on enhancing the accessibility, security, and environmental friendliness of transportation systems. Sustainable transportation is key to achieving this goal, as it can help reduce traffic congestion, air pollution, and greenhouse gas emissions, while also improving citizens' quality of life and public health.
+
+<br>
+<a href="https://sdgs.un.org/goals/goal13">
+  <img src="y9zrlhaf.png" alt="SDG 13">
+</a>
 
 SDG 13 aims to tackle climate change and its effects as soon as possible. Transportation is a significant source of greenhouse gas emissions, making the shift to more environmentally friendly means of transportation crucial to achieving this goal. Promoting sustainable transportation options can reduce the carbon footprint of transportation systems and mitigate the effects of climate change.
 
