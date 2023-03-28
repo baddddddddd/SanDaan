@@ -61,13 +61,13 @@ This system is expected to not only make public transportation more accessible a
 
 ## 🎯 Objectives
 
-* Develop a data scraper that can collect and analyze data on public transportation schedules and routes from various sources.
+* 💽 Develop a data scraper that can collect and analyze data on public transportation schedules and routes from various sources.
 
-* Integrate the collected data into a user-friendly mobile-based application that allows users to easily search for transportation options based on their current location, destination, and preferred travel time.
+* 📲 Integrate the collected data into a user-friendly mobile-based application that allows users to easily search for transportation options based on their current location, destination, and preferred travel time.
 
-* Conduct user testing and feedback sessions to ensure that the platform is user-friendly and provides accurate and helpful information to users.
+* 🗣️ Conduct user testing and feedback sessions to ensure that the platform is user-friendly and provides accurate and helpful information to users.
 
-* Continuously update the platform with the latest data on public transportation schedules and routes to ensure the accuracy of the recommendations provided to users. This will involve utilizing data from the users as well.
+* ✔️ Continuously update the platform with the latest data on public transportation schedules and routes to ensure the accuracy of the recommendations provided to users. This will involve utilizing data from the users as well.
 
 ## 👨‍👨‍👦‍👦 Significance
 
@@ -85,12 +85,12 @@ This system is expected to not only make public transportation more accessible a
 ## 📋 Planned Features
 
 The mobile app will have features that mainly aim to make commuting more convenient for commuters Specifically, the app will have the following features:
-* Available on Android devices
-* Realtime location tracking using GPS
-* Interactive map where users can mark destinations and check places
-* Route suggestions using only public transport such as jeepneys and buses
-* Contains information on transport vehicle routes and schedules
-* Community-powered: users can share transport routes and update transport vehicle schedules for other users to see
+* 📱 Available on Android devices
+* 🛰️ Realtime location tracking using GPS
+* 🗺️ Interactive map where users can mark destinations and check places
+* ↗️ Route suggestions using only public transport such as jeepneys and buses
+* 🚌 Contains information on transport vehicle routes and schedules
+* 👨‍👩‍👧‍👦 Community-powered: users can share transport routes and update transport vehicle schedules for other users to see
 
 
 ## 💻 Technical Requirements
