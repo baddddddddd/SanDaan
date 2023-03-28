@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/icon.png">
-    <img src="icon.png" alt="Logo" width="80" height="80">
+    <img src="icon.png" alt="Logo" width="240" height="240">
   </a>
 
   <h1 align="center">San Daan?</h1>
