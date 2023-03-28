@@ -38,6 +38,8 @@
 
 <br>
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
+
 ## 🔍 Introduction
 
 Commuting can be a stressful and time-consuming process, with traffic conditions and other unforeseen events often causing delays and frustration. Additionally, the transportation sector is a significant contributor to greenhouse gas emissions that contribute to climate change. To address these challenges, a navigation app for commuters will be developed.
@@ -46,6 +48,7 @@ This project aims to develop an app-based navigation system that will help commu
 
 Furthermore, the app-based navigation system can contribute to achieving the Sustainable Development Goals (SDGs), particularly SDG 11, which aims to make cities and human settlements more inclusive, safe, resilient, and sustainable, and SDG 13, which seeks to take urgent action to combat climate change and its impacts. By promoting sustainable transportation solutions and reducing greenhouse gas emissions, the app-based navigation system can make a valuable contribution towards achieving these global goals.
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 🌏 Problem Statement
 
@@ -67,6 +70,7 @@ SDG 13 aims to tackle climate change and its effects as soon as possible. Transp
 
 Currently, there is a lack of tools that use information about the schedules, routes, and usage of public transportation to offer environmentally friendly options to users. This restricts people from making informed decisions that align with global sustainable development goals. A technology that can effectively compile information on available public transportation options, analyze it, and offer consumers personalized recommendations for more environmentally friendly solutions is needed to address this problem. Such a tool would support the global effort to attain SDGs 11 and 13 by promoting environmentally friendly transportation and reducing carbon emissions.
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 🌱 Purpose
 
@@ -74,6 +78,7 @@ The primary objective of this project is to help people by developing a mobile-b
 
 This system is expected to not only make public transportation more accessible and efficient for users but also encourage more individuals to contribute to this feature and keep the project relevant over an extended period. By promoting sustainable transportation options, the project will contribute towards achieving the Sustainable Development Goals (SDGs), particularly SDG 11, which emphasizes making cities and human settlements more inclusive, safe, resilient, and sustainable. Ultimately, the mobile application will help people choose the best transportation options, reduce travel time and cost, and minimize the environmental impact of public transportation.
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 🎯 Objectives
 
@@ -84,6 +89,8 @@ This system is expected to not only make public transportation more accessible a
 * 🗣️ Conduct user testing and feedback sessions to ensure that the platform is user-friendly and provides accurate and helpful information to users.
 
 * ✔️ Continuously update the platform with the latest data on public transportation schedules and routes to ensure the accuracy of the recommendations provided to users. This will involve utilizing data from the users as well.
+
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 👨‍👨‍👦‍👦 Significance
 
@@ -97,6 +104,7 @@ This system is expected to not only make public transportation more accessible a
 
 * 🚕 **Public Transportation Drivers**: By providing recommendations for more efficient routes or forms of transportation, this program can also help public transportation drivers. They can help create more sustainable transportation systems by conserving fuel and optimizing their routes more efficiently.
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 📋 Planned Features
 
@@ -114,6 +122,7 @@ The mobile app will have features that mainly aim to make commuting more conveni
 
 * 👨‍👩‍👧‍👦 Community-powered: users can share transport routes and update transport vehicle schedules for other users to see
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 💻 Technical Requirements
 
@@ -131,6 +140,7 @@ To speed up and improve the development of the mobile application, the developer
 
 * [**GitHub**](https://github.com/) - an Internet hosting service for software development and version control using Git. This will be used to make collaboration more convenient for the developers of the project.
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
 ## 🔭 Scope of the Project
 
