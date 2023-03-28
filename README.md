@@ -39,15 +39,15 @@ This system is expected to not only make public transportation more accessible a
 
 ## 👨‍👨‍👦‍👦 Significance
 
-* Students: Since they often rely on public transportation to get to school or college, making access to sustainable transportation options is especially critical. This program will serve to aid students in selecting environmentally responsible transportation options, identifying the most efficient routes, and reducing their carbon footprint by providing information on sustainable transportation choices. 
+* 🎓 **Students**: Since they often rely on public transportation to get to school or college, making access to sustainable transportation options is especially critical. This program will serve to aid students in selecting environmentally responsible transportation options, identifying the most efficient routes, and reducing their carbon footprint by providing information on sustainable transportation choices. 
 
-* Commuters: They are significant contributors to carbon emissions, and providing them with information on environmentally friendly transportation options can help to mitigate their environmental impact. Additionally, commuting can be a stressful experience, and this program can alleviate some of that stress by offering personalized and efficient transit options.
+* 🚌 **Commuters**: They are significant contributors to carbon emissions, and providing them with information on environmentally friendly transportation options can help to mitigate their environmental impact. Additionally, commuting can be a stressful experience, and this program can alleviate some of that stress by offering personalized and efficient transit options.
 
-* Tourists: In unfamiliar cities, tourists frequently rely on public transportation to get around and may need to be made aware of more environmentally friendly options. This resource can assist tourists in choosing the most effective mode of transportation to get them to where they're going and minimize the impact of their travels on the environment.
+* 🛫 **Tourists**: In unfamiliar cities, tourists frequently rely on public transportation to get around and may need to be made aware of more environmentally friendly options. This resource can assist tourists in choosing the most effective mode of transportation to get them to where they're going and minimize the impact of their travels on the environment.
 
-* Drivers: Even if unfamiliar with sustainable transportation options, they may find this program beneficial in reducing their carbon footprint. They could reduce their carbon footprint by supporting different forms of transportation, including biking or public transportation, and choosing the most efficient route. With the help of this program, drivers may be encouraged to choose more environmentally friendly options.
+* 🚗 **Drivers**: Even if unfamiliar with sustainable transportation options, they may find this program beneficial in reducing their carbon footprint. They could reduce their carbon footprint by supporting different forms of transportation, including biking or public transportation, and choosing the most efficient route. With the help of this program, drivers may be encouraged to choose more environmentally friendly options.
 
-* Public Transportation Drivers: By providing recommendations for more efficient routes or forms of transportation, this program can also help public transportation drivers. They can help create more sustainable transportation systems by conserving fuel and optimizing their routes more efficiently.
+* 🚕 **Public Transportation Drivers**: By providing recommendations for more efficient routes or forms of transportation, this program can also help public transportation drivers. They can help create more sustainable transportation systems by conserving fuel and optimizing their routes more efficiently.
 
 
 ## 📋 Planned Features
@@ -64,11 +64,16 @@ The mobile app will have features that mainly aim to make commuting more conveni
 ## 💻 Technical Requirements
 
 To speed up and improve the development of the mobile application, the developers will use various tools. These include:
-* Python - a high-level, general-purpose programming language. This will be used to program the logic for the application.
-* Kivy - a cross-platform Python application development framework. This will be used to create an application that can run in android.
-* OpenStreetMap - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This will be used to obtain map data such as names of places and routes through its API.
-* Conda - an open-source, cross-platform, language-agnostic package manager and environment management system. This will be used to ensure that the developers of the project work on the same virtual environment with the same modules with the same exact versions.
-* GitHub - an Internet hosting service for software development and version control using Git. This will be used to make collaboration more convenient for the developers of the project.
+
+* [Python](https://www.python.org/) - a high-level, general-purpose programming language. This will be used to program the logic for the application.
+
+* [Kivy](https://kivy.org/) - a cross-platform Python application development framework. This will be used to create an application that can run in android.
+
+* [OpenStreetMap](https://www.openstreetmap.org/) - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This will be used to obtain map data such as names of places and routes through its API.
+
+* [Conda](https://conda.io/) - an open-source, cross-platform, language-agnostic package manager and environment management system. This will be used to ensure that the developers of the project work on the same virtual environment with the same modules with the same exact versions.
+
+* [GitHub](https://github.com/) - an Internet hosting service for software development and version control using Git. This will be used to make collaboration more convenient for the developers of the project.
 
 
 ## 🔭 Scope of the Project
