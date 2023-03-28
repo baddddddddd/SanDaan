@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/icon.webp">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -10,6 +10,27 @@
   </h3>
   <br>
 </div>
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#🔍-introduction">Introduction</a>
+    </li>
+    <li>
+      <a href="#🌏-problem-statement">Problem Statement</a>
+    </li>
+    <li><a href="#🌱-purpose">Purpose</a></li>
+    <li><a href="#🎯-objectives">Objectives</a></li>
+    <li><a href="#👨‍👨‍👦‍👦-significance">Significance</a></li>
+    <li><a href="#📋-planned-features">Planned Features</a></li>
+    <li><a href="#💻-technical-requirements">Technical Requirements</a></li>
+    <li><a href="#🔭-scope-of-the-project">Scope of the Project</a></li>
+    <li><a href="#👩‍💻-project-team">Project Team</a></li>
+  </ol>
+</details>
+
+<br>
 
 ## 🔍 Introduction
 
