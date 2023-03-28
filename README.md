@@ -1,4 +1,15 @@
-# San Daan
+<div align="center">
+  <a href="https://github.com/othneildrew/Best-README-Template">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  </a>
+
+  <h1 align="center">San Daan?</h1>
+
+  <h3 align="center">
+    🚕 A mobile app for commuters, by commuters. 🚕
+  </h3>
+  <br>
+</div>
 
 ## 🔍 Introduction
 
@@ -70,6 +81,8 @@ To speed up and improve the development of the mobile application, the developer
 * [Kivy](https://kivy.org/) - a cross-platform Python application development framework. This will be used to create an application that can run in android.
 
 * [OpenStreetMap](https://www.openstreetmap.org/) - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This will be used to obtain map data such as names of places and routes through its API.
+
+* [MySQL](https://www.mysql.com/) - an open-source relational database management system. This will be used to store the information about the routes and places as well as the transport schedules shared by users.
 
 * [Conda](https://conda.io/) - an open-source, cross-platform, language-agnostic package manager and environment management system. This will be used to ensure that the developers of the project work on the same virtual environment with the same modules with the same exact versions.
 
