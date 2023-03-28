@@ -101,11 +101,17 @@ This system is expected to not only make public transportation more accessible a
 ## 📋 Planned Features
 
 The mobile app will have features that mainly aim to make commuting more convenient for commuters Specifically, the app will have the following features:
+
 * 📱 Available on Android devices
+
 * 🛰️ Realtime location tracking using GPS
+
 * 🗺️ Interactive map where users can mark destinations and check places
+
 * ↗️ Route suggestions using only public transport such as jeepneys and buses
+
 * 🚌 Contains information on transport vehicle routes and schedules
+
 * 👨‍👩‍👧‍👦 Community-powered: users can share transport routes and update transport vehicle schedules for other users to see
 
 
@@ -113,17 +119,17 @@ The mobile app will have features that mainly aim to make commuting more conveni
 
 To speed up and improve the development of the mobile application, the developers will use various tools. These include:
 
-* [Python](https://www.python.org/) - a high-level, general-purpose programming language. This will be used to program the logic for the application.
+* [**Python**](https://www.python.org/) - a high-level, general-purpose programming language. This will be used to program the logic for the application.
 
-* [Kivy](https://kivy.org/) - a cross-platform Python application development framework. This will be used to create an application that can run in android.
+* [**Kivy**](https://kivy.org/) - a cross-platform Python application development framework. This will be used to create an application that can run in android.
 
-* [OpenStreetMap](https://www.openstreetmap.org/) - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This will be used to obtain map data such as names of places and routes through its API.
+* [**OpenStreetMap**](https://www.openstreetmap.org/) - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This will be used to obtain map data such as names of places and routes through its API.
 
-* [MySQL](https://www.mysql.com/) - an open-source relational database management system. This will be used to store the information about the routes and places as well as the transport schedules shared by users.
+* [**MySQL**](https://www.mysql.com/) - an open-source relational database management system. This will be used to store the information about the routes and places as well as the transport schedules shared by users.
 
-* [Conda](https://conda.io/) - an open-source, cross-platform, language-agnostic package manager and environment management system. This will be used to ensure that the developers of the project work on the same virtual environment with the same modules with the same exact versions.
+* [**Conda**](https://conda.io/) - an open-source, cross-platform, language-agnostic package manager and environment management system. This will be used to ensure that the developers of the project work on the same virtual environment with the same modules with the same exact versions.
 
-* [GitHub](https://github.com/) - an Internet hosting service for software development and version control using Git. This will be used to make collaboration more convenient for the developers of the project.
+* [**GitHub**](https://github.com/) - an Internet hosting service for software development and version control using Git. This will be used to make collaboration more convenient for the developers of the project.
 
 
 ## 🔭 Scope of the Project
