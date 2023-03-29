@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/icon.png">
+  <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/images/icon.png">
     <img src="icon.png" alt="Logo" width="240" height="240">
   </a>
 
@@ -56,14 +56,14 @@ Despite the rapid advancement of technology and the information we have access t
 
 <br>
 <a href="https://sdgs.un.org/goals/goal11">
-  <img src="xjirn7s3.png" alt="SDG 11">
+  <img src="images/xjirn7s3.png" alt="SDG 11">
 </a>
 
 SDG 11 emphasizes the need for more inclusive and sustainable cities and communities, with a focus on enhancing the accessibility, security, and environmental friendliness of transportation systems. Sustainable transportation is key to achieving this goal, as it can help reduce traffic congestion, air pollution, and greenhouse gas emissions, while also improving citizens' quality of life and public health.
 
 <br>
 <a href="https://sdgs.un.org/goals/goal13">
-  <img src="y9zrlhaf.png" alt="SDG 13">
+  <img src="images/y9zrlhaf.png" alt="SDG 13">
 </a>
 
 SDG 13 aims to tackle climate change and its effects as soon as possible. Transportation is a significant source of greenhouse gas emissions, making the shift to more environmentally friendly means of transportation crucial to achieving this goal. Promoting sustainable transportation options can reduce the carbon footprint of transportation systems and mitigate the effects of climate change.
