@@ -25,14 +25,14 @@
       <a href="#-introduction">Introduction</a>
     </li>
     <li>
-      <a href="#🌏-problem-statement">Problem Statement</a>
+      <a href="#-problem-statement">Problem Statement</a>
     </li>
-    <li><a href="#🌱-purpose">Purpose</a></li>
-    <li><a href="#🎯-objectives">Objectives</a></li>
-    <li><a href="#👨‍👨‍👦‍👦-significance">Significance</a></li>
-    <li><a href="#📋-planned-features">Planned Features</a></li>
-    <li><a href="#💻-technical-requirements">Technical Requirements</a></li>
-    <li><a href="#🔭-scope-of-the-project">Scope of the Project</a></li>
+    <li><a href="#-purpose">Purpose</a></li>
+    <li><a href="#-objectives">Objectives</a></li>
+    <li><a href="#-significance">Significance</a></li>
+    <li><a href="#-planned-features">Planned Features</a></li>
+    <li><a href="#-technical-requirements">Technical Requirements</a></li>
+    <li><a href="#-scope-of-the-project">Scope of the Project</a></li>
   </ol>
 </details>
 
