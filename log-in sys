@@ -1,0 +1,98 @@
+import mysql.connector
+import bcrypt
+
+exe = mysql.connector.connect(
+    host = "localhost",
+    user = "root",
+    passwd = "Iammico0619",
+    database = "burgis_db"
+)
+
+sql = exe.cursor()
+
+def user_inp():
+    while True:
+        try:
+            user = input("Enter Username:  ")
+            if " " in user:
+                raise ValueError
+            else:
+                break
+        except ValueError:
+            print("Invalid Username Please Try Again")
+            pass
+    while True:
+        try:
+            email = input("Enter email: ")
+            if " " in email:
+                raise ValueError
+            else:
+                break
+        except ValueError:
+            print("Invalid Email Please Try Again")
+            pass
+    while True:
+        try:
+            pswd = input("Enter Password:  ")
+            if " " in user:
+                raise ValueError
+            else:
+                break
+        except ValueError:
+            print("Invalid Password Please Try Again")
+            pass
+    while True:
+        try:
+            conf_pswd = input("Confirm password: ")
+            if conf_pswd == pswd:
+                break
+            else:
+                raise ValueError
+        except ValueError:
+            print("Passwords do not match")
+            pass
+    return user,pswd,email
+
+def register():
+    login_data = (user_inp())
+    query = "INSERT INTO login (user_db, pswrd_db, email) VALUES (%s,%s,%s)"
+    sql.execute(query, login_data)
+    exe.commit()
+    print("REGISTERED SUCCESSFULLY")
+
+def check_login(user_inp, pswd_inp):
+    login_data = (user_inp, pswd_inp)
+    query = "SELECT * FROM login WHERE user_db = %s AND pswrd_db = %s"
+    sql.execute(query, login_data)
+    user = sql.fetchone()
+    if user:
+        print("LOG-IN SUCCESSFUL")
+        return True
+    else:
+        print("WRONG USERNAME OR PASSWORD")
+        return False
+
+def login():
+    print("LOG-IN")
+    user = input("Enter Username: ")
+    pswd = input("Enter Password: ")
+    check_login(user,pswd)
+
+def main():
+    print("BURGIS LOG-IN SYSTEM")
+    print("[1] REGISTER")
+    print("[2] LOG_IN")
+    print("[3] EXIT")
+    choice = int(input("What do you want to do? "))
+    if choice == 1:
+        register()
+    elif choice == 2:
+        login()
+    elif choice == 3:
+        exit()
+    else:
+        print("Please enter a valid choice")
+        pass
+if _name_ == "_main_":
+    while True:
+        main()
