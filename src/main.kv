@@ -1,0 +1,63 @@
+#:kivy 1.0.9
+
+MDScreen:
+    name: "main"
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        Image:
+            source: "assets/logo.png"
+            size_hint: .4, .4
+            pos_hint: {"center_x": .5, "center_y": .85}
+        Image:
+            source: "assets/back.png"
+            size_hint: .8, .8
+            pos_hint: {"center_x": .5, "center_y": .65}
+        MDLabel:
+            text: "San Daan?"
+            font_name: "MPoppins"
+            font_size: "23sp"
+            pos_hint: {"center_y": .38}
+            halign: "center"
+            color: rgba(34, 34, 34, 255)
+        MDLabel:
+            text: "For commuters, by commuters"
+            font_name: "MPoppins"
+            font_size: "13sp"
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .3}
+            halign: "center"
+            color: rgba(127, 127, 127, 255)
+        Button:
+            text: "LOG IN"
+            pos_hint: {"center_x": .5, "center_y": .18}
+            size_hint: .66, .065
+            background_color: 0, 0, 0, 0
+            font_name: "BPoppins"
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "login"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [5]
+
+        Button:
+            text: "SIGN UP"
+            pos_hint: {"center_x": .5, "center_y": .09}
+            size_hint: .66, .065
+            background_color: 0, 0, 0, 0
+            font_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "signup"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+
