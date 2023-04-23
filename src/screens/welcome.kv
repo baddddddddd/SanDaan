@@ -1,7 +1,7 @@
 #:kivy 1.0.9
 
 MDScreen:
-    name: "main"
+    name: "welcome"
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         Image:
@@ -53,6 +53,7 @@ MDScreen:
             color: rgba(52, 0, 231, 255)
             on_release:
                 root.manager.transition.direction = "left"
+                root.manager.transition.duration = 0.3
                 root.manager.current = "signup"
             canvas.before:
                 Color:

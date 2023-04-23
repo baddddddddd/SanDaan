@@ -1,9 +1,0 @@
-#: import MapView kivy_garden.mapview.MapView
-
-<BatsMapView>:
-    lat: 13.7565
-    lon: 121.0583
-    zoom: 15
-    # Sets the minimum zoom
-    on_zoom:
-        self.zoom = 15 if self.zoom < 15 else self.zoom

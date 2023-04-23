@@ -1,7 +1,7 @@
 #:kivy 1.0.9
 
 MDScreen:
-    name: "signup"
+    name: "login"
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -12,17 +12,17 @@ MDScreen:
             text_color: rgba(26, 24, 58, 255)
             on_release:
                 root.manager.transition.direction = "right"
-                root.manager.current = "main"
+                root.manager.current = "welcome"
 
         MDLabel:
-            text: "SIGN UP"
+            text: "LOG IN"
             font_name: "MPoppins"
             font_size: "26sp"
             pos_hint: {"center_x": .6, "center_y": .85}
             color: rgba(0, 0, 59, 255)
 
         MDLabel:
-            text: "Create a new account"
+            text: "Sign in to continue"
             font_name: "MPoppins"
             font_size: "18sp"
             pos_hint: {"center_x": .6, "center_y": .79}
@@ -30,31 +30,10 @@ MDScreen:
 
         MDFloatLayout:
             size_hint: .7, .07
-            pos_hint: {"center_x": .5, "center_y": .66}
-            TextInput:
-                id: username
-                hint_text: "Username"
-                font_name: "MPoppins"
-                size_hint_y: .8
-                pos_hint: {"center_x": .43, "center_y": .5}
-                background_color: 1, 1, 1, 0
-                foreground_color: rgba(0, 0, 59, 255)
-                cursor_color: rgba(0, 0, 59, 255)
-                font_size: "14sp"
-                cursor_width: "2sp"
-                multiline: False
-            
-            MDFloatLayout:
-                pos_hint: {"center_x": .45, "center_y": 0}
-                size_hint_y: .03
-                md_bg_color: rgba(178, 178, 178, 255)
-
-        MDFloatLayout:
-            size_hint: .7, .07
-            pos_hint: {"center_x": .5, "center_y": .56}
+            pos_hint: {"center_x": .5, "center_y": .63}
             TextInput:
                 id: email
-                hint_text: "Email"
+                hint_text: "Username or Email"
                 font_name: "MPoppins"
                 size_hint_y: .8
                 pos_hint: {"center_x": .43, "center_y": .5}
@@ -72,7 +51,7 @@ MDScreen:
 
         MDFloatLayout:
             size_hint: .7, .07
-            pos_hint: {"center_x": .5, "center_y": .46}
+            pos_hint: {"center_x": .5, "center_y": .5}
             TextInput:
                 id: password
                 hint_text: "Password"
@@ -92,36 +71,14 @@ MDScreen:
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
 
-        MDFloatLayout:
-            size_hint: .7, .07
-            pos_hint: {"center_x": .5, "center_y": .36}
-            TextInput:
-                id: confirm_password
-                hint_text: "Confirm Password"
-                font_name: "MPoppins"
-                size_hint_y: .8
-                pos_hint: {"center_x": .43, "center_y": .5}
-                background_color: 1, 1, 1, 0
-                foreground_color: rgba(0, 0, 59, 255)
-                cursor_color: rgba(0, 0, 59, 255)
-                font_size: "14sp"
-                cursor_width: "2sp"
-                multiline: False
-                password: True
-            
-            MDFloatLayout:
-                pos_hint: {"center_x": .45, "center_y": 0}
-                size_hint_y: .03
-                md_bg_color: rgba(178, 178, 178, 255)
-
         Button:
-            text: "SIGN UP"
-            pos_hint: {"center_x": .5, "center_y": .22}
+            text: "LOG IN"
+            pos_hint: {"center_x": .5, "center_y": .34}
             size_hint: .66, .065
             background_color: 0, 0, 0, 0
             font_name: "BPoppins"
             on_release:
-                app.create_account(username, email, password, confirm_password)
+                app.verify_login(email, password)
             canvas.before:
                 Color:
                     rgb: rgba(52, 0, 231, 255)
@@ -130,20 +87,27 @@ MDScreen:
                     pos: self.pos
                     radius: [5]
 
+        MDTextButton:
+            text: "Forgot Password?"
+            pos_hint: {"center_x": .5, "center_y": .26}
+            color: rgba(68, 78, 132, 255)
+            font_size: "12sp"
+            font_name: "BPoppins"
 
         MDLabel:
-            text: "Already have an account?"
+            text: "Don't have an account?"
             font_name: "BPoppins"
             font_size: "11sp"
-            pos_hint: {"center_x": .68, "center_y": .14}
+            pos_hint: {"center_x": .68, "center_y": .23}
             color: rgba(135, 133, 193, 255)
 
         MDTextButton:
-            text: "Log in"
+            text: "Sign up"
             font_name: "BPoppins"
             font_size: "11sp"
-            pos_hint: {"center_x": .77, "center_y": .14}
+            pos_hint: {"center_x": .75, "center_y": .23}
             color: rgba(52, 0, 21, 255)
             on_release:
                 root.manager.transition.direction = "left"
-                root.manager.current = "login"
+                root.manager.current = "signup"
+

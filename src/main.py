@@ -1,85 +1,121 @@
 from kivy.core.text import LabelBase
-from kivy.uix.screenmanager import ScreenManager
-from kivy.uix.textinput import TextInput
-from kivymd.app import MDApp
+from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.core.window import Window
-import mysql.connector
+from kivy.uix.screenmanager import ScreenManager
+from kivy_garden.mapview import MapMarker, MapView
+from kivymd.app import MDApp
+from kivymd.uix.button import MDRoundFlatIconButton, MDIconButton
+from kivymd.uix.screen import MDScreen
+from plyer import gps
 import bcrypt
 
-Window.size = (310, 580)
+import geocoder
+
+
+class InteractiveMap(MapView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.current_location = geocoder.ip('me').latlng
+        self.current_location_pin = MapMarker(
+            lat=self.current_location[0],
+            lon=self.current_location[1],
+        )
+
+        self.target_location = None
+        self.target_location_pin = MapMarker()
+        
+        self.add_widget(self.current_location_pin)
+        self.add_widget(self.target_location_pin)
+
+
+        self.touch_event = None
+
+
+    def on_touch_down(self, touch):
+        self.touch_hold = True
+
+        self.target_location = None
+        self.remove_widget(self.target_location_pin)
+
+        self.touch_event = Clock.schedule_once(lambda dt: self.check_long_press(touch), 1.0)
+        return super().on_touch_down(touch)
+    
+    def on_touch_up(self, touch):
+        self.touch_hold = False
+
+        if self.touch_event is not None:
+            self.touch_event.cancel()
+
+        return super().on_touch_up(touch)
+    
+    def on_touch_move(self, touch):
+        self.touch_hold = False
+
+        if self.touch_event is not None:
+            self.touch_event.cancel()
+
+        return super().on_touch_move(touch)
+    
+    def check_long_press(self, touch):
+        if self.touch_hold:
+            self.touch_hold = False
+            print(self.get_latlon_at(touch.x, touch.y))
+
+            self.target_location = self.get_latlon_at(touch.x, touch.y)
+            self.target_location_pin.lat = self.target_location.lat
+            self.target_location_pin.lon = self.target_location.lon
+
+            self.add_widget(self.target_location_pin)
+            
+        
+
+class MapViewScreen(MDScreen):
+    def __init__(self, **kw):
+        super().__init__(**kw)
+
+        current_location = geocoder.ip('me').latlng
+
+        self.mapview = InteractiveMap(
+            lat=current_location[0],
+            lon=current_location[1],
+            zoom=15,
+        )
+
+        self.add_widget(self.mapview)
+
+        self.directions_button = MDIconButton()
+
+        self.directions_button.pos_hint = {
+            "center_x": 0.9,
+            "center_y": 0.1,
+        }
+
+        self.directions_button.icon = "car-arrow-right"
+        self.directions_button.user_font_size = "40sp"
+        self.directions_button.theme_text_color = "Custom"
+        self.directions_button.text_color = [26, 24, 58, 255]
+
+
+
+        self.add_widget(self.directions_button)
 
 
 class MainApp(MDApp):
-    db = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        passwd="admin", 
-        database="sandaan"  
-    )
-
-    cursor = db.cursor()
-
     def build(self):
         screen_manager = ScreenManager()
-        screen_manager.add_widget(Builder.load_file("main.kv"))
-        screen_manager.add_widget(Builder.load_file("signup.kv"))
-        screen_manager.add_widget(Builder.load_file("login.kv"))
+        screen_manager.add_widget(MapViewScreen())
+        screen_manager.add_widget(Builder.load_file("screens/welcome.kv"))
+        screen_manager.add_widget(Builder.load_file("screens/login.kv"))
+        screen_manager.add_widget(Builder.load_file("screens/signup.kv"))
+
         return screen_manager
     
 
-    def verify_login(self, username: TextInput, password: TextInput):
-        login_data = (username.text, username.text)
-        query = "SELECT * FROM users WHERE username=%s OR email=%s"
-        
-        self.cursor.execute(query, login_data)
-        user = self.cursor.fetchone()
-
-        is_logged_in = False
-        if user is not None:
-            hashed_pw = user[2]
-            
-            is_logged_in = bcrypt.checkpw(password.text.encode("utf-8"), hashed_pw.encode("ascii"))
-
-
-        if is_logged_in:
-            print("LOGGED IN SUCCESSFULLY")
-        else:
-            print("INCORRECT USERNAME OR PASSWORD")
-
-
-    def create_account(self, username: TextInput, email: TextInput, password: TextInput, confirm_password: TextInput):
-        self.cursor.execute("SELECT * FROM users WHERE username=%s", (username.text,))
-        result = self.cursor.fetchone()
-
-        if result is not None:
-            print("That username is already taken")
-            return False
-        
-        self.cursor.execute("SELECT * FROM users WHERE email=%s", (email.text,))
-        result = self.cursor.fetchone()
-
-        if result is not None:
-            print("There is already an account with that email")
-            return False
-        
-        # Adding the salt to password
-        salt = bcrypt.gensalt()
-
-        # Hashing the password
-        hashed_pw = bcrypt.hashpw(password.text.encode("utf-8"), salt)
-        
-        login_data = (username.text, email.text, hashed_pw)
-        query = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)"
-        self.cursor.execute(query, login_data)
-        self.db.commit()
-
-        print("REGISTERED SUCCESSFULLY")
-
-        return True
-    
-
 if __name__ == "__main__":
+    from kivy.core.window import Window
+    Window.size = (360, 720)
+
     LabelBase.register(name="MPoppins", fn_regular=r"fonts\Poppins\Poppins-Medium.ttf")
     LabelBase.register(name="BPoppins", fn_regular=r"fonts\Poppins\Poppins-SemiBold.ttf")
 
