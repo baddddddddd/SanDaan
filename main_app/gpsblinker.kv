@@ -1,0 +1,21 @@
+<GpsBlinker>:
+    default_blink_size: 25
+    blink_size: 25
+    source: 'kivymd/images/transparent.png'
+    outer_opacity: 1
+
+    canvas.before:
+        # Outer Circle
+        Color:
+            rgba: app.theme_cls.primary_color[:3] + [root.outer_opacity]
+        RoundedRectangle:
+            radius: [root.blink_size/2.0, ]
+            size: [root.blink_size, root.blink_size]
+            pos: root.center_x - root.blink_size/2.0, root.center_y - root.blink_size/2.0
+        # Inner Circle
+        Color:
+            rgb: app.theme_cls.primary_color
+        RoundedRectangle:
+            radius: [root.default_blink_size/2.0, ]
+            size: [root.default_blink_size, root.default_blink_size]
+            pos: [root.center_x - root.default_blink_size/2.0, root.center_y - root.default_blink_size/2]

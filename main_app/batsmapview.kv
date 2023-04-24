@@ -1,4 +1,6 @@
-#: import MapView kivy_garden.mapview.MapView
+#:import MapView kivy_garden.mapview.MapView
+#:import GpsBlinker gpsblinker.GpsBlinker
+#:include gpsblinker.kv
 
 <BatsMapView>:
     lat: 13.7565
@@ -7,3 +9,5 @@
     # Sets the minimum zoom
     on_zoom:
         self.zoom = 15 if self.zoom < 15 else self.zoom
+    GpsBlinker:
+        id: blinker
