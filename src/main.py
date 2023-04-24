@@ -9,14 +9,12 @@ from kivymd.uix.screen import MDScreen
 from plyer import gps
 import bcrypt
 
-import geocoder
-
 
 class InteractiveMap(MapView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.current_location = geocoder.ip('me').latlng
+        self.current_location = [13.78669, 121.07459]
         self.current_location_pin = MapMarker(
             lat=self.current_location[0],
             lon=self.current_location[1],
@@ -74,7 +72,7 @@ class MapViewScreen(MDScreen):
     def __init__(self, **kw):
         super().__init__(**kw)
 
-        current_location = geocoder.ip('me').latlng
+        current_location = [13.78669, 121.07459]
 
         self.mapview = InteractiveMap(
             lat=current_location[0],
@@ -113,10 +111,11 @@ class MainApp(MDApp):
     
 
 if __name__ == "__main__":
-    from kivy.core.window import Window
-    Window.size = (360, 720)
+    if __debug__:
+        from kivy.core.window import Window
+        Window.size = (360, 720)
 
-    LabelBase.register(name="MPoppins", fn_regular=r"fonts\Poppins\Poppins-Medium.ttf")
-    LabelBase.register(name="BPoppins", fn_regular=r"fonts\Poppins\Poppins-SemiBold.ttf")
+    LabelBase.register(name="MPoppins", fn_regular=r"fonts/Poppins/Poppins-Medium.ttf")
+    LabelBase.register(name="BPoppins", fn_regular=r"fonts/Poppins/Poppins-SemiBold.ttf")
 
     MainApp().run()

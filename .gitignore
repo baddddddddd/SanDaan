@@ -1,4 +1,7 @@
+.buildozer
+bin
 cache
+log.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -34,6 +37,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+!buildozer.spec
 
 # Installer logs
 pip-log.txt
