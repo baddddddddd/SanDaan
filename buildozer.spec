@@ -10,13 +10,13 @@ package.name = sandaan
 package.domain = burgis.sandaan
 
 # (str) Source code where the main.py live
-source.dir = ./src
+source.dir = ./src/app
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,ttf
 
 # (list) List of inclusions using pattern matching
-#source.include_patterns = assets/*,images/*.png,fonts/*,screens/*
+#source.include_patterns = app/*,assets/*,images/*.png,fonts/*,screens/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
 #source.exclude_exts = spec
@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,kivymd,plyer,bcrypt,pillow,openssl,requests,charset_normalizer,chardet,idna,urllib3,ratelim,decorator,certifi,android,mapview
+requirements = python3,kivy,kivymd==1.1.1,plyer,bcrypt,pillow,openssl,requests,charset_normalizer,chardet,idna,urllib3,ratelim,decorator,certifi,android,mapview
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

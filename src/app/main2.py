@@ -4,7 +4,7 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
 from kivy.utils import platform
 from kivymd.app import MDApp
-from kivymd.uix.button import MDRoundFlatIconButton, MDIconButton
+from kivymd.uix.button import MDFloatingActionButton, MDIconButton
 from kivymd.uix.floatlayout import FloatLayout
 from kivymd.uix.screen import MDScreen
 from kivy_garden.mapview import MapMarker, MapView
@@ -16,10 +16,7 @@ class InteractiveMap(MapView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.current_location_pin = MapMarker(
-            lat=self.current_location[0],
-            lon=self.current_location[1],
-        )
+        self.current_location_pin = MapMarker()
 
         self.target_location = None
         self.target_location_pin = MapMarker()
@@ -99,28 +96,34 @@ class MainScreenLayout(FloatLayout):
             self.mapview.current_location_pin.lon = self.current_location[1]
 
         ################### Experimenting
-        self.directions_button = MDIconButton()
+        self.show_directions_button = MDFloatingActionButton(
+            icon="pencil",
+            #type="standard",
+            #theme_icon_color="Custom",
+            #md_bg_color="#fefbff",
+            #icon_color="#6851a5",
+            pos_hint={
+                "center_x": 0.875,
+                "center_y": 0.125,
+            },
+        )
 
-        self.directions_button.pos_hint = {
-            "center_x": 0.9,
-            "center_y": 0.1,
-        }
+        self.add_widget(self.show_directions_button)
 
-        self.directions_button.icon = "car-arrow-right"
-        self.directions_button.user_font_size = "40sp"
-        self.directions_button.theme_text_color = "Custom"
-        self.directions_button.text_color = [26, 24, 58, 255]
-
-        self.add_widget(self.directions_button)
+        self.show_directions_button.bind(on_release=self.centralize_map)
         ####################################
+
+
+    def centralize_map(self, instance):
+        self.mapview.center_on(self.current_location[0], self.current_location[1])
+        self.mapview.zoom = 15
 
 
     def update_location(self, **kwargs):
         if not self.has_initialized_gps:
             self.has_initialized_gps = True
             self.current_location = [kwargs["lat"], kwargs["lon"]]
-            self.mapview.lat = kwargs["lat"]
-            self.mapview.lon = kwargs["lon"]
+            self.mapview.center_on(kwargs["lat"], kwargs["lon"])
             self.mapview.zoom = 15
 
         self.mapview.current_location_pin.lat = kwargs["lat"]
@@ -137,8 +140,12 @@ class MapViewScreen(MDScreen):
 
 class MainApp(MDApp):
     def build(self):
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.material_style = "M3"
+    
         screen_manager = ScreenManager()
-        screen_manager.add_widget(MapViewScreen())
+        #screen_manager.add_widget(MapViewScreen())
         screen_manager.add_widget(Builder.load_file("screens/welcome.kv"))
         screen_manager.add_widget(Builder.load_file("screens/login.kv"))
         screen_manager.add_widget(Builder.load_file("screens/signup.kv"))
@@ -151,7 +158,7 @@ if __name__ == "__main__":
         from kivy.core.window import Window
         Window.size = (360, 720)
 
-    LabelBase.register(name="MPoppins", fn_regular=r"fonts/Poppins/Poppins-Medium.ttf")
-    LabelBase.register(name="BPoppins", fn_regular=r"fonts/Poppins/Poppins-SemiBold.ttf")
+    LabelBase.register(name="Poppins_Medium", fn_regular=r"fonts/Poppins/Poppins-Medium.ttf")
+    LabelBase.register(name="Poppins_SemiBold", fn_regular=r"fonts/Poppins/Poppins-SemiBold.ttf")
 
     MainApp().run()
