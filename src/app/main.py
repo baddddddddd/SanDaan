@@ -228,8 +228,7 @@ class InteractiveMap(MapView):
         self.add_widget(self.current_location_pin)
 
         self.pinned_location = None
-        self.pinned_location_pin = MapMarker()
-        self.add_widget(self.pinned_location_pin)
+        self.pinned_location_pin = None
 
         self.has_initialized_gps = False
 
@@ -250,6 +249,17 @@ class InteractiveMap(MapView):
         self.get_directions(self.current_location, Coordinate(13.7639650, 121.0566100), "drive")
 
 
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            if touch.is_double_tap:
+                if self.pinned_location is None:
+                    self.place_pin(self.get_latlon_at(touch.x, touch.y, self.zoom))
+                else:
+                    self.remove_pin()
+
+        return super().on_touch_down(touch)
+    
+
     def on_touch_move(self, touch):
         if self.collide_point(*touch.pos):
             self.redraw_route()
@@ -261,6 +271,20 @@ class InteractiveMap(MapView):
     def on_zoom(self, instance, zoom):
         self.redraw_route()
         return super().on_zoom(instance, zoom)
+
+
+    def place_pin(self, coordinate: Coordinate):
+        self.pinned_location = coordinate
+        self.pinned_location_pin = MapMarker(
+            lat=coordinate.lat,
+            lon=coordinate.lon,
+        )
+        self.add_widget(self.pinned_location_pin)
+
+
+    def remove_pin(self):
+        self.pinned_location = None
+        self.remove_widget(self.pinned_location_pin)
 
 
     def follow_user(self):
