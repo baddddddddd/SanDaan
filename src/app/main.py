@@ -252,12 +252,15 @@ class InteractiveMap(MapView):
 
     def on_touch_move(self, touch):
         if self.collide_point(*touch.pos):
-            if self.graphed_route is not None:
-                if self.graph_line is not None:
-                    self.canvas.remove(self.graph_line)
-                    self.draw_route(self.graphed_route)
+            self.redraw_route()
+
 
         return super().on_touch_move(touch)
+    
+
+    def on_zoom(self, instance, zoom):
+        self.redraw_route()
+        return super().on_zoom(instance, zoom)
 
 
     def follow_user(self):
@@ -274,6 +277,12 @@ class InteractiveMap(MapView):
 
         self.current_location_pin.lat = kwargs["lat"]
         self.current_location_pin.lon = kwargs["lon"]
+
+
+    def redraw_route(self):
+        if self.graphed_route is not None and self.graph_line is not None:
+            self.canvas.remove(self.graph_line)
+            self.draw_route(self.graphed_route)
 
 
     def get_coordinates_by_address(self, address):
