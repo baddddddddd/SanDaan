@@ -52,12 +52,4 @@ def get_directions():
         return jsonify({
             "route": route
         })
-    
-    
-@app.route('/programming_languages', methods=['GET', 'POST'])
-def programming_languages_route():
-   if request.method == 'GET':
-       return "hey"
-   elif request.method == "POST":
-       return jsonify(request.get_json(force=True))
         
