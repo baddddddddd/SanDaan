@@ -245,8 +245,19 @@ class InteractiveMap(MapView):
             # SanDaan API URL for hosting API on the web server
             API_URL = "https://sandaan-api.onrender.com"
 
+        self.graphed_route = None
+        self.graph_line = None
         self.get_directions(self.current_location, Coordinate(13.7639650, 121.0566100), "drive")
 
+
+    def on_touch_move(self, touch):
+        if self.collide_point(*touch.pos):
+            if self.graphed_route is not None:
+                if self.graph_line is not None:
+                    self.canvas.remove(self.graph_line)
+                    self.draw_route(self.graphed_route)
+
+        return super().on_touch_move(touch)
 
 
     def follow_user(self):
@@ -289,23 +300,24 @@ class InteractiveMap(MapView):
             "mode": mode
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.graph_directions)
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
 
 
-    def graph_directions(self, urlrequest, result):
+    def draw_directions(self, urlrequest, result):
         route = result["route"]
+        self.graphed_route = route
 
-        self.graph_route(route)
+        self.draw_route(self.graphed_route)
 
     
-    def graph_route(self, route: list):
+    def draw_route(self, route: list):
         # Get the pixel coordinates that correspond with the coordinates on the route
         points = [self.get_window_xy_from(coord[0], coord[1], self.zoom) for coord in route]
 
         with self.canvas:
-            # Equivalent of [29, 53, 87]
+            # Equivalent of rgba(29, 53, 87), which is the primary color of the palette used for UI
             Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
-            Line(points=points, width=3, cap="round", joint="round")
+            self.graph_line = Line(points=points, width=3, cap="round", joint="round")
 
 
     def success(self, urlrequest, result):
