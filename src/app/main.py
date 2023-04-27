@@ -203,9 +203,15 @@ MDScreen:
 
         MDFloatingActionButton:
             icon: "crosshairs-gps"
-            pos_hint: {"center_x": 0.875, "center_y": 0.125}
+            pos_hint: {"center_x": 0.875, "center_y": 0.235}
             on_release:
                 map.follow_user()
+
+        MDFloatingActionButton:
+            icon: "directions"
+            pos_hint: {"center_x": 0.875, "center_y": 0.125}
+            on_release:
+                map.request_directions()
 
         
             
@@ -246,7 +252,6 @@ class InteractiveMap(MapView):
 
         self.graphed_route = None
         self.graph_line = None
-        self.get_directions(self.current_location, Coordinate(13.7639650, 121.0566100), "drive")
 
 
     def on_touch_down(self, touch):
@@ -263,7 +268,6 @@ class InteractiveMap(MapView):
     def on_touch_move(self, touch):
         if self.collide_point(*touch.pos):
             self.redraw_route()
-
 
         return super().on_touch_move(touch)
     
@@ -283,12 +287,26 @@ class InteractiveMap(MapView):
 
 
     def remove_pin(self):
+        if self.graphed_route is not None:
+            self.graphed_route = None
+            self.canvas.remove(self.graph_line)
+        
         self.pinned_location = None
         self.remove_widget(self.pinned_location_pin)
 
 
+    def request_directions(self):
+        if self.pinned_location is not None:
+            self.get_directions(self.current_location, self.pinned_location, "drive")
+
+
+    def centralize_map_on(self, coords: Coordinate):
+        self.center_on(coords.lat, coords.lon)
+        self.redraw_route()
+
+
     def follow_user(self):
-        self.center_on(self.current_location[0], self.current_location[1])
+        self.centralize_map_on(self.current_location)
         self.zoom = 15
 
 
@@ -296,7 +314,7 @@ class InteractiveMap(MapView):
         if not self.has_initialized_gps:
             self.has_initialized_gps = True
             self.current_location = [kwargs["lat"], kwargs["lon"]]
-            self.center_on(kwargs["lat"], kwargs["lon"])
+            self.centralize_map_on(Coordinate(kwargs["lat"], kwargs["lon"]))
             self.zoom = 15
 
         self.current_location_pin.lat = kwargs["lat"]
@@ -356,7 +374,7 @@ class InteractiveMap(MapView):
     def success(self, urlrequest, result):
         latitude = float(result[0]['lat'])
         longitude = float(result[0]['lon'])
-        self.center_on(latitude, longitude)
+        self.centralize_map_on(Coordinate(latitude, longitude))
         self.zoom = 15
 
 
