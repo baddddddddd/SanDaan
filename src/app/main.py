@@ -213,6 +213,7 @@ class InteractiveMap(MapView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        # Default location, which is Batangas State University - Alangilan, coordinate if GPS is not available
         self.current_location = [13.78530, 121.07339]
         self.current_location_pin = MapMarker(
             lat=13.78530,
@@ -226,6 +227,7 @@ class InteractiveMap(MapView):
 
         self.has_initialized_gps = False
 
+        # Request permission for accessing GPS in Android devices
         if platform == "android":
             from android.permissions import request_permissions, Permission
 
@@ -233,6 +235,7 @@ class InteractiveMap(MapView):
             
             gps.configure(on_location=self.update_location)
             gps.start()
+
 
 
     def follow_user(self):
