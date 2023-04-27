@@ -6,9 +6,10 @@ from kivy.lang import Builder
 from kivy.network.urlrequest import UrlRequest
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFloatingActionButton
-from kivy_garden.mapview import MapMarker, MapView
+from kivy_garden.mapview import MapMarker, MapView, Coordinate
 from plyer import gps
 from urllib import parse
+import json
 
 
 WELCOME_SCREEN = '''
@@ -209,12 +210,16 @@ MDScreen:
             
 '''
 
+# SanDaan API URL for hosting API locally
+API_URL = "http://127.0.0.1:5000"
+
+
 class InteractiveMap(MapView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # Default location, which is Batangas State University - Alangilan, coordinate if GPS is not available
-        self.current_location = [13.78530, 121.07339]
+        self.current_location = Coordinate(13.78530, 121.07339)
         self.current_location_pin = MapMarker(
             lat=13.78530,
             lon=121.07339,
@@ -235,6 +240,11 @@ class InteractiveMap(MapView):
             
             gps.configure(on_location=self.update_location)
             gps.start()
+
+            # SanDaan API URL for hosting API on the web server
+            API_URL = "https://sandaan-api.onrender.com"
+
+        self.get_directions(self.current_location, Coordinate(13.7639650, 121.0566100), "drive")
 
 
 
@@ -265,6 +275,26 @@ class InteractiveMap(MapView):
         UrlRequest(url, on_success=self.success, on_failure=self.failure, on_error=self.error, req_headers=headers)
 
 
+    def get_directions(self, origin: Coordinate, destination: Coordinate, mode: str):
+        url = f"{API_URL}/directions"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        body = json.dumps({
+            "origin": [origin.lat, origin.lon],
+            "destination": [destination.lat, destination.lon],
+            "mode": mode
+        })
+
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.graph_directions)
+
+
+    def graph_directions(self, urlrequest, result):
+        print(result["route"])
+
+
     def success(self, urlrequest, result):
         latitude = float(result[0]['lat'])
         longitude = float(result[0]['lon'])
@@ -288,10 +318,10 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Cyan"
         
         self.screen_manager = ScreenManager()
+        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
-        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
 
         return self.screen_manager
     
