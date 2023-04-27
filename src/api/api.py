@@ -44,10 +44,13 @@ def get_directions():
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
         destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
 
-        optimal_route = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+
+        # Convert all the nodes in the computed path to coordinates
+        route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
         return jsonify({
-            "route": optimal_route
+            "route": route
         })
     
     

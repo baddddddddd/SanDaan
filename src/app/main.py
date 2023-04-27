@@ -1,5 +1,6 @@
 from kivy.app import App
 from kivy.core.text import LabelBase
+from kivy.graphics import Color, Line
 from kivy.uix.screenmanager import ScreenManager
 from kivy.utils import platform
 from kivy.lang import Builder
@@ -292,7 +293,19 @@ class InteractiveMap(MapView):
 
 
     def graph_directions(self, urlrequest, result):
-        print(result["route"])
+        route = result["route"]
+
+        self.graph_route(route)
+
+    
+    def graph_route(self, route: list):
+        # Get the pixel coordinates that correspond with the coordinates on the route
+        points = [self.get_window_xy_from(coord[0], coord[1], self.zoom) for coord in route]
+
+        with self.canvas:
+            # Equivalent of [29, 53, 87]
+            Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
+            Line(points=points, width=3, cap="round", joint="round")
 
 
     def success(self, urlrequest, result):
