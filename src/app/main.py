@@ -1,13 +1,12 @@
 from kivy.app import App
 from kivy.core.text import LabelBase
 from kivy.graphics import Color, Line
+from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
 from kivy.utils import platform
-from kivy.lang import Builder
 from kivy.network.urlrequest import UrlRequest
-from kivymd.app import MDApp
-from kivymd.uix.button import MDFloatingActionButton
 from kivy_garden.mapview import MapMarker, MapView, Coordinate
+from kivymd.app import MDApp
 from plyer import gps
 from urllib import parse
 import json
@@ -313,8 +312,8 @@ class InteractiveMap(MapView):
     def update_location(self, **kwargs):
         if not self.has_initialized_gps:
             self.has_initialized_gps = True
-            self.current_location = [kwargs["lat"], kwargs["lon"]]
-            self.centralize_map_on(Coordinate(kwargs["lat"], kwargs["lon"]))
+            self.current_location = Coordinate(kwargs["lat"], kwargs["lon"])
+            self.centralize_map_on(self.current_location)
             self.zoom = 15
 
         self.current_location_pin.lat = kwargs["lat"]
@@ -351,7 +350,7 @@ class InteractiveMap(MapView):
             "mode": mode
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions, on_failure=self.handle_connection_error)
 
 
     def draw_directions(self, urlrequest, result):
@@ -369,6 +368,12 @@ class InteractiveMap(MapView):
             # Equivalent of rgba(29, 53, 87), which is the primary color of the palette used for UI
             Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
             self.graph_line = Line(points=points, width=3, cap="round", joint="round")
+
+
+    def handle_connection_error(self, urlrequest, result):
+        print(urlrequest)
+        print(result)
+        print("Connection Error")
 
 
     def success(self, urlrequest, result):
