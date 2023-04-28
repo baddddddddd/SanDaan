@@ -3,3 +3,4 @@ Gunicorn
 mysql-connector-python
 osmnx
 scikit-learn
+python-dotenv

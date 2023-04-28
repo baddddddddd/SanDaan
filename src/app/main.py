@@ -216,8 +216,134 @@ MDScreen:
             
 '''
 
+MAP_ROUTING_SCREEN = '''
+#:import MapView kivy_garden.mapview.MapView
+
+
+MDScreen:
+    name: "map_routing"
+
+    FloatLayout:
+        MapRouting:
+            id: map_routing
+            lat: 13.78530
+            lon: 121.07339
+            zoom: 15
+
+        
+        MDFloatingActionButton:
+            icon: "map-plus"
+            pos_hint: {"center_x": 0.875, "center_y": 0.125}
+            on_release:
+                map_routing.submit_pins()
+
+        MDFloatingActionButton:
+            icon: "upload"
+            pos_hint: {"center_x": 0.875, "center_y": 0.235}
+            on_release:
+                map_routing.upload_route()
+        
+'''
+
 # SanDaan API URL for hosting API locally
 API_URL = "http://127.0.0.1:5000"
+
+
+class MapRouting(MapView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.route_nodes = []
+
+
+        self.pins = []
+        self.graphed_route = None
+        self.graph_line = None
+
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            if touch.is_double_tap:
+                # place pin
+                coord = self.get_latlon_at(touch.x, touch.y, self.zoom)
+                self.pins.append(coord)
+
+                self.add_widget(MapMarker(
+                    lat=coord.lat,
+                    lon=coord.lon,
+                ))
+
+                print(coord)
+
+                # get nearest node
+
+                # check if nearest node is last node
+                # if not, pathfind from last node to chosen node
+                # graph pathfinded route
+                # add pathfinded route to route_nodes
+
+        return super().on_touch_down(touch)
+
+
+    def place_pin(self, coordinate: Coordinate):
+        self.pinned_location_pin = MapMarker(
+            lat=coordinate.lat,
+            lon=coordinate.lon,
+        )
+        self.add_widget(self.pinned_location_pin)
+
+
+    def submit_pins(self):
+        url = f"{API_URL}/route"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        body = json.dumps({
+            "pins": self.pins,
+        })
+
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
+
+        print('awdawd')
+
+
+    def upload_route(self):
+        url = f"{API_URL}/add_route"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        body = json.dumps({
+            "name": "gch",
+            "description": "wala lang",
+            "coords": self.graphed_route,
+        })
+
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
+
+
+    def check(self, urlrequest, result):
+        print(urlrequest)
+        print(result)
+
+    def draw_directions(self, urlrequest, result):
+        route = result["route"]
+        self.graphed_route = route
+
+        self.draw_route(self.graphed_route)
+
+    
+    def draw_route(self, route: list):
+        # Get the pixel coordinates that correspond with the coordinates on the route
+        points = [self.get_window_xy_from(coord[0], coord[1], self.zoom) for coord in route]
+
+        with self.canvas:
+            # Equivalent of rgba(29, 53, 87), which is the primary color of the palette used for UI
+            Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
+            self.graph_line = Line(points=points, width=3, cap="round", joint="round")
 
 
 class InteractiveMap(MapView):
@@ -399,6 +525,7 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Cyan"
         
         self.screen_manager = ScreenManager()
+        self.screen_manager.add_widget(Builder.load_string(MAP_ROUTING_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))

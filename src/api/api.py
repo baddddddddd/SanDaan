@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 
+import json
 import mysql.connector
 import os
 import osmnx as ox
@@ -53,3 +54,75 @@ def get_directions():
             "route": route
         })
         
+
+@app.route("/route", methods=["POST"])
+def get_route():
+    if request.method == "POST":
+        data = request.get_json()
+
+        pins = data.get("pins", None)
+
+        route_nodes = []
+        for coord in pins:
+            graph = ox.graph_from_point(tuple(pins[0]), dist=2000, network_type="drive")
+
+            nearest_node = ox.distance.nearest_nodes(graph, coord[1], coord[0])
+
+            if len(route_nodes) > 0:
+                if route_nodes[-1] == nearest_node:
+                    continue
+            else:
+                route_nodes.append(nearest_node)
+                continue
+
+            path = nx.shortest_path(graph, route_nodes[-1], nearest_node, weight="distance")
+
+            route_nodes += path[1:]
+
+        print(route_nodes)
+
+            
+        # get nearest node
+        # check if nearest node is last node
+        # if not, pathfind from last node to chosen node
+        # graph pathfinded route
+        # add pathfinded route to route_nodes
+
+        route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
+
+        return jsonify({
+            "route": route
+        })
+    
+
+@app.route("/add_route", methods=["POST"])
+def add_route():
+    if request.method == "POST":
+        data = request.get_json()
+
+        print(data)
+
+        name = data.get("name", None)
+        description = data.get("description", None)
+        coords = data.get("coords", None)
+
+        params = (name, description, json.dumps(coords))
+        query = "INSERT INTO routes (name, description, coords) VALUES (%s, %s, %s)"
+        cursor.execute(query,params)
+        db.commit()
+
+        return jsonify({
+            "success": True
+        })
+    
+# Storing routes in a database
+# Routes contain a list of coordinates (lat, lon)
+# Routes must have places specified (ie, Batangas City, Alangilan, Laguna)
+# Routes must have names and descriptions
+# Store routes to databasee in JSON string format
+
+# Finding a commute route in a database
+# Get shortest path between starting location and target location
+# Convert path to list of Coordinates
+# Get all routes that are in the same location or vicinity of target and starting location
+# Find intersection between the shortest path and the filtered routes from the previous steps
