@@ -79,9 +79,6 @@ def get_route():
 
             route_nodes += path[1:]
 
-        print(route_nodes)
-
-            
         # get nearest node
         # check if nearest node is last node
         # if not, pathfind from last node to chosen node
@@ -89,6 +86,9 @@ def get_route():
         # add pathfinded route to route_nodes
 
         route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
+
+        with open("res.txt", "a") as f:
+            f.write(str(route))
 
         return jsonify({
             "route": route
