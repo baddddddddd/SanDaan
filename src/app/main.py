@@ -361,11 +361,24 @@ class InteractiveMap(MapView):
 
 
 class MapRouting(InteractiveMap):
+
+    # Defined GUI Controls
+    # Double tap to add pin
+    # Tap pin to open pin options
+    # Pin options include:
+    #   * Remove Pin
+    #   * Move Pin
+    #   * Rearrange Order (Change index of Pin)
+    # Button to draw route
+    # Button to confirm route and upload
+        # Upon pressing, user will be asked to name the route and add description (additional info)
+        # User will also be asked of the time range that the route is available
+        # User will also be asked of the vicinity of the route (Brgy, City, Province, Region) for database design purposes
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.route_nodes = []
-
 
         self.pins = []
         self.graphed_route = None
