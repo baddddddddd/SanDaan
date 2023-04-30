@@ -281,7 +281,8 @@ class InteractiveMap(MapView):
             gps.start()
 
             # SanDaan API URL for hosting API on the web server
-            API_URL = "https://sandaan-api.onrender.com"
+            API_URL = "http://192.168.1.42:5000"
+            # API_URL = "https://sandaan-api.onrender.com"
 
         self.graphed_route = None
         self.graph_line = None
