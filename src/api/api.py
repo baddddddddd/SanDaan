@@ -5,6 +5,7 @@ import mysql.connector
 import os
 import osmnx as ox
 import networkx as nx
+import math
 
 app = Flask(__name__)
 
@@ -55,6 +56,42 @@ def get_directions():
         })
         
 
+# Computes the distance between two geological points
+def get_distance(point_1, point_2):
+     # Define the radius of the Earth in kilometers
+    radius = 6371
+
+    # Convert latitude and longitude from decimal degrees to radians
+    lat1, lon1 = math.radians(point_1[0]), math.radians(point_1[1])
+    lat2, lon2 = math.radians(point_2[0]), math.radians(point_2[1])
+
+    # Compute the differences between the latitudes and longitudes
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    # Compute the Haversine distance
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    distance = radius * c
+
+    return distance
+
+
+# Computes the center coordinate among a list of coordinates
+def get_center(points: list):
+    lat_sum = 0.0
+    lon_sum = 0.0
+    count = len(points)
+    
+    for point in points:
+        lon_sum += point[0]
+        lat_sum += point[1]
+
+    center_lat = lat_sum / count
+    center_lon = lon_sum / count
+    return (center_lon, center_lat)
+
+
 @app.route("/route", methods=["POST"])
 def get_route():
     if request.method == "POST":
@@ -62,9 +99,17 @@ def get_route():
 
         pins = data.get("pins", None)
 
+        center = get_center(pins)
+        farthest_dist = 0
+        for coord in pins:
+            dist = get_distance(center, coord)
+
+            if dist > farthest_dist:
+                farthest_dist = dist
+
         route_nodes = []
         for coord in pins:
-            graph = ox.graph_from_point(tuple(pins[0]), dist=2000, network_type="drive")
+            graph = ox.graph_from_point(center, dist=farthest_dist * 1000 + 1000, network_type="drive")
 
             nearest_node = ox.distance.nearest_nodes(graph, coord[1], coord[0])
 
