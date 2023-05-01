@@ -11,6 +11,15 @@ from kivy.uix.floatlayout import FloatLayout
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFlatButton
 
+KV = '''
+MDScreen:
+    name: "screen"
+    FloatLayout:
+        MDScrollView:
+            MDList:
+                id: list_var
+'''
+
 FIRST_SCREEN = '''
 MDScreen:
     name: "first"
