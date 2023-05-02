@@ -13,7 +13,7 @@ db = mysql.connector.connect(
     host=os.getenv("HOST"),
     user=os.getenv("USERNAME"),
     passwd=os.getenv("PASSWORD"), 
-    database=os.getenv("DATABASE")  
+    database=os.getenv("DATABASE"),
 )
 
 cursor = db.cursor()
@@ -109,7 +109,7 @@ def get_route():
 
         route_nodes = []
         for coord in pins:
-            graph = ox.graph_from_point(center, dist=farthest_dist * 1000 + 1000, network_type="drive")
+            graph = ox.graph_from_point(center, dist=farthest_dist * 1100, network_type="drive")
 
             nearest_node = ox.distance.nearest_nodes(graph, coord[1], coord[0])
 

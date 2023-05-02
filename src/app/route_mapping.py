@@ -1,5 +1,6 @@
+from kivy.clock import Clock
 from kivy.network.urlrequest import UrlRequest
-from kivy_garden.mapview import MapView, MapMarker, MapMarkerPopup, Coordinate
+from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.list import MDList, OneLineListItem
 import json
 
@@ -25,7 +26,7 @@ MDScreen:
             icon: "map-plus"
             pos_hint: {"center_x": 0.875, "center_y": 0.125}
             on_release:
-                map_routing.submit_pins()
+                map_routing.connect_all_pins()
 
         MDFloatingActionButton:
             icon: "upload"
@@ -36,29 +37,10 @@ MDScreen:
 '''
 
 class RouteMapping(InteractiveMap):
-
-    # Defined GUI Controls
-    # Double tap to add pin
-    # Tap pin to open pin options
-    # Pin options include:
-    #   * Remove Pin
-    #   * Move Pin
-    #   * Rearrange Order (Change index of Pin)
-    # Button to draw route
     # Button to confirm route and upload
         # Upon pressing, user will be asked to name the route and add description (additional info)
         # User will also be asked of the time range that the route is available
         # User will also be asked of the vicinity of the route (Brgy, City, Province, Region) for database design purposes
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.route_nodes = []
-
-        self.pins = []
-        self.graphed_route = None
-        self.graph_line = None
-
 
     class RoutePin(MapMarkerPopup):
         def __init__(self, **kwargs):
@@ -66,29 +48,49 @@ class RouteMapping(InteractiveMap):
             self.remove_button = OneLineListItem(text="Remove")
             self.remove_button.bind(on_release=self.remove_marker)
 
-            self.popup_layout = MDList(
-
+            self.options = MDList(
+                md_bg_color="#000000"
             )
-            self.add_widget(self.remove_button)
+
+            self.options.add_widget(self.remove_button)
+            self.add_widget(self.options)
+
+            self.disabled = True
+            Clock.schedule_once(self.enable_input, 0.2)
+
 
         def remove_marker(self, *args):
             self.parent.parent.pins.remove(self)
-            self.parent.parent.remove_marker(self)
+
+            if len(self.parent.parent.pins) >= 2:
+                self.parent.parent.connect_all_pins()
+
+            if len(self.parent.parent.pins) >= 1:
+                self.parent.parent.remove_route()
+                
+            self.parent.parent.remove_marker(self)      
+
+
+        def enable_input(self, *args):
+            self.disabled = False
+
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.pins = []
+        self.graphed_route = []
+        self.graph_line = None
+        self.waiting_for_route = False
 
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            if touch.is_double_tap:
+            if touch.is_double_tap and not self.waiting_for_route:
                 # place pin
                 coord = self.get_latlon_at(touch.x, touch.y, self.zoom)
-                route_pin = self.RoutePin(
-                    lat=coord.lat,
-                    lon=coord.lon,
-                    
-                )
-
-                self.pins.append(route_pin)                
-                self.add_widget(route_pin)
+                self.place_route_pin(coord)
+                
 
                 # get nearest node
 
@@ -100,15 +102,46 @@ class RouteMapping(InteractiveMap):
         return super().on_touch_down(touch)
 
 
-    def place_pin(self, coordinate: Coordinate):
-        self.pinned_location_pin = MapMarker(
-            lat=coordinate.lat,
-            lon=coordinate.lon,
+    def place_route_pin(self, coord: Coordinate):
+        route_pin = self.RoutePin(
+            lat=coord.lat,
+            lon=coord.lon,
         )
-        self.add_widget(self.pinned_location_pin)
+
+        self.pins.append(route_pin)                
+        self.add_widget(route_pin)
+
+        if len(self.pins) <= 1:
+            return
+        
+        url = f"{API_URL}/route"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        pin_coords = [(pin.lat, pin.lon) for pin in self.pins[-2:]]
+        body = json.dumps({
+            "pins": pin_coords,
+        })
+
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.connect_route)
+
+        self.waiting_for_route = True
 
 
-    def submit_pins(self):
+    def connect_route(self, urlrequest, result):  
+        if len(self.pins) == 2:
+            self.graphed_route += result["route"]
+            self.draw_route(self.graphed_route)
+        else:
+            self.graphed_route += result["route"][1:]
+            self.redraw_route()
+
+        self.waiting_for_route = False
+
+
+    def connect_all_pins(self):
         url = f"{API_URL}/route"
         
         headers = {
@@ -120,10 +153,14 @@ class RouteMapping(InteractiveMap):
             "pins": pin_coords,
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.redraw_all)
+        
+        self.waiting_for_route = True
 
-        print('awdawd')
 
+    def redraw_all(self, urlrequest, result):
+        self.draw_directions(urlrequest, result)
+        self.waiting_for_route = False
 
     def upload_route(self):
         url = f"{API_URL}/add_route"
