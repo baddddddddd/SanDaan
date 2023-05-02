@@ -21,7 +21,6 @@ MDScreen:
             lon: 121.07339
             zoom: 15
 
-        
         MDFloatingActionButton:
             icon: "map-plus"
             pos_hint: {"center_x": 0.875, "center_y": 0.125}
@@ -162,6 +161,7 @@ class RouteMapping(InteractiveMap):
         self.draw_directions(urlrequest, result)
         self.waiting_for_route = False
 
+
     def upload_route(self):
         url = f"{API_URL}/add_route"
         
@@ -176,8 +176,3 @@ class RouteMapping(InteractiveMap):
         })
 
         UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
-
-
-    def check(self, urlrequest, result):
-        print(urlrequest)
-        print(result)
