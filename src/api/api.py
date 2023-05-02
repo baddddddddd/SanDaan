@@ -22,18 +22,17 @@ cursor = db.cursor()
 
 @app.route('/register', methods=['POST'])
 def register():
-
-    id = request.json['user_id']
-    email = request.json.get['email']
-    user = request.json.get['username']
-    pswd = request.json.get['password']
+    json = request.json
+    email = json['email']
+    user = json['username']
+    pswd = json['password']
     salt = bcrypt.gensalt()
-    hashed_pswd = bcrypt.generate_password_hash((pswd + salt).encode('utf-8')).decode('utf-8')
-    if id and email and user and hashed_pswd and salt and request.method == 'POST':
-        query = ("INSERT INTO users(user_id, email, username, password, salt) VALUES(%s, ?, ?, ?)", (email, user, hashed_pswd, salt))
-        data = (email, user, pswd, id)            
-        db.execute(query, data)
-        cursor.commit()
+    hashed_pswd = bcrypt.hashpw(pswd.encode('utf-8'), salt)
+    if email and user and hashed_pswd and salt and request.method == 'POST':
+        query = "INSERT INTO users(email, username, password, salt) VALUES( %s, %s, %s, %s)"
+        data = (email, user, hashed_pswd,salt)            
+        cursor.execute(query, data)
+        db.commit()
         response = jsonify('REGISTERED SUCCESSFULLY')
         response.status_code = 200
         return response
@@ -42,19 +41,17 @@ def register():
     
 @app.route('/login', methods=['POST'])
 def login():
-    user = request.json.get('username')
-    pswd = request.json.get('password')
+    user = request.json.get('user_db')
+    pswd = request.json.get('pswd_db').encode('utf-8')
 
-    result = db.execute("SELECT salt FROM users WHERE username = ?", (user,))
-    user = result.fetchone()
+    cursor.execute("SELECT * FROM users WHERE username = %s", (user,))
+    result = cursor.fetchone()
 
-    if user:
-        hashed_pswd = user['password']
-        salt = user['salt']
-        hashed_input_password = bcrypt.generate_password_hash((pswd + salt).encode('utf-8'))
-
-        if bcrypt.check_password_hash(hashed_pswd, hashed_input_password):
-            access_token = create_access_token(identity=user)
+    if result is not None:
+        salt = result[4].encode('utf-8')
+        hash_input_pswd = bcrypt.hashpw(pswd, salt)
+        if bcrypt.checkpw(pswd, hash_input_pswd):
+            access_token = create_access_token(identity=result[3])
             return jsonify(access_token=access_token), 200
         else:
             return jsonify({'message': 'Invalid credentials'}), 401
