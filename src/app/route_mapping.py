@@ -1,6 +1,9 @@
 from kivy.clock import Clock
 from kivy.network.urlrequest import UrlRequest
+from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import MDList, OneLineListItem
 import json
 
@@ -10,6 +13,19 @@ from interactive_map import InteractiveMap
 
 MAP_ROUTING_SCREEN = '''
 #:import MapView kivy_garden.mapview.MapView
+
+<RouteInformation>:
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "120dp"
+
+    MDTextField:
+        hint_text: "Route name"
+
+    MDTextField:
+        hint_text: "Route description"
+        multiline: True
 
 MDScreen:
     name: "map_routing"
@@ -31,9 +47,13 @@ MDScreen:
             icon: "upload"
             pos_hint: {"center_x": 0.875, "center_y": 0.235}
             on_release:
-                map_routing.upload_route()
+                map_routing.confirm_route()
         
 '''
+
+class RouteInformation(BoxLayout):
+    pass
+
 
 class RouteMapping(InteractiveMap):
     # Button to confirm route and upload
@@ -81,6 +101,23 @@ class RouteMapping(InteractiveMap):
         self.graphed_route = []
         self.graph_line = None
         self.waiting_for_route = False
+        self.dialog = MDDialog(
+            title="Route Information",
+            type="custom",
+            content_cls=RouteInformation(),
+            buttons=[
+                MDFlatButton(
+                    text="CANCEL",
+                    theme_text_color="Custom",
+                    on_release=self.cancel_confirmation,
+                ),
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=self.upload_route,
+                ),
+            ],
+        )
 
 
     def on_touch_down(self, touch):
@@ -160,6 +197,14 @@ class RouteMapping(InteractiveMap):
     def redraw_all(self, urlrequest, result):
         self.draw_directions(urlrequest, result)
         self.waiting_for_route = False
+
+
+    def confirm_route(self):
+        self.dialog.open()
+
+
+    def cancel_confirmation(self, *args):
+        self.dialog.dismiss()
 
 
     def upload_route(self):
