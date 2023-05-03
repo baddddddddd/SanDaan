@@ -5,6 +5,7 @@ from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import MDList, OneLineListItem
+from kivymd.uix.textfield import MDTextField
 import json
 
 from common import API_URL
@@ -20,12 +21,6 @@ MAP_ROUTING_SCREEN = '''
     size_hint_y: None
     height: "120dp"
 
-    MDTextField:
-        hint_text: "Route name"
-
-    MDTextField:
-        hint_text: "Route description"
-        multiline: True
 
 MDScreen:
     name: "map_routing"
@@ -52,7 +47,23 @@ MDScreen:
 '''
 
 class RouteInformation(BoxLayout):
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.name_field = MDTextField(
+            hint_text="Route name"
+        )
+        self.add_widget(self.name_field)
+
+        self.desc_field = MDTextField(
+            hint_text="Route description",
+            multiline=True,
+        )
+        self.desc_field.bind(height=self.update_height)
+        self.add_widget(self.desc_field)
+
+    def update_height(self, *args):
+        self.height = sum([children.height for children in self.children])
 
 
 class RouteMapping(InteractiveMap):
@@ -101,10 +112,11 @@ class RouteMapping(InteractiveMap):
         self.graphed_route = []
         self.graph_line = None
         self.waiting_for_route = False
+        self.route_information = RouteInformation()
         self.dialog = MDDialog(
             title="Route Information",
             type="custom",
-            content_cls=RouteInformation(),
+            content_cls=self.route_information,
             buttons=[
                 MDFlatButton(
                     text="CANCEL",
@@ -118,7 +130,12 @@ class RouteMapping(InteractiveMap):
                 ),
             ],
         )
+        self.route_information.bind(height=self.update_dialog_height)
+    
 
+    def update_dialog_height(self, *args):
+        self.dialog.update_height(sum([children.height for children in self.dialog.content_cls.children]))
+        
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
