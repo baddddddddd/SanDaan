@@ -1,15 +1,15 @@
 from kivy.app import App
 from kivy.core.text import LabelBase
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Rectangle
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.utils import platform
+from kivy.utils import platform, get_color_from_hex
 from kivy.network.urlrequest import UrlRequest
 from kivy_garden.mapview import MapMarker, MapView, Coordinate
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFlatButton
 from kivy.properties import ObjectProperty
-from kivymd.uix.list import MDList
+from kivymd.uix.list import MDList, OneLineListItem
 from kivy.clock import Clock
 from plyer import gps
 from urllib import parse
@@ -193,6 +193,8 @@ MDScreen:
             lat: 13.78530
             lon: 121.07339
             zoom: 15
+            on_parent:
+                self.set_search_list(root.ids.search_list)
 
         MDTextField:
             id: search_location
@@ -200,12 +202,15 @@ MDScreen:
             mode: "round"
             size_hint_x: 0.9
             pos_hint: {"center_x": 0.5, "top": 0.98}
-            on_text_validate: 
-                app.root.get_screen("mapview").ids.map.get_coordinates_by_address(search_location.text) if app.root.get_screen("mapview") else None
-            on_focus:
-                root.manager.transition.direction = "down"
-                root.manager.current = "searchview"
-
+            on_text_validate:
+                if app.root.get_screen("mapview"): map = app.root.get_screen("mapview").ids.map, map.get_coordinates_by_address(search_location.text), map.add_suggestion([search_location.text])
+                #app.root.get_screen("mapview").ids.map.get_coordinates_by_address(search_location.text) if app.root.get_screen("mapview") else None
+        MDScrollView:
+            size_hint: 0.9, 0.4
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
+            MDList:
+                id: search_list
+                md_bg_color: (1, 0 ,0, 1)
         MDFloatingActionButton:
             icon: "crosshairs-gps"
             pos_hint: {"center_x": 0.875, "center_y": 0.235}
@@ -218,30 +223,6 @@ MDScreen:
             on_release:
                 map.request_directions()
 '''
-SEARCH_SCREEN = '''
-MDScreen:
-    name: 'searchview'
-    
-    FloatLayout:
-        id: float_layout
-        MDTextField:
-            id: search_field
-            hint_text: "Search location"
-            mode: "round"
-            size_hint_x: 0.9
-            pos_hint: {"center_x": 0.5, "top": 0.98}
-            on_text_validate: 
-                app.root.get_screen("mapview").ids.map.get_coordinates_by_address(search_field.text) if app.root.get_screen("mapview") else None
-                root.manager.current = "mapview"
-        MDScrollView:
-            size_hint: 0.9, 0.4
-            pos_hint: {'center_x': 0.5, 'top': 0.9}
-            MDList:
-                id: search_list
-                size_hint_y: None
-                height: self.minimum_height
-                padding: 0, "20dp"
-'''
 
 # SanDaan API URL for hosting API locally
 API_URL = "http://127.0.0.1:5000"
@@ -249,7 +230,7 @@ API_URL = "http://127.0.0.1:5000"
 class InteractiveMap(MapView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
+        self.search_list = None
         # Default location, which is Batangas State University - Alangilan, coordinate if GPS is not available
         self.current_location = Coordinate(13.78530, 121.07339)
         self.current_location_pin = MapMarker(
@@ -278,7 +259,25 @@ class InteractiveMap(MapView):
         self.graphed_route = None
         self.graph_line = None
 
+    #search_list = ObjectProperty()
+    def set_search_list(self, search_list):
+        self.search_list = search_list
+    
+    def add_suggestion(self, suggestions): # ONLY 1 APPEARS IN THE LIST
+        if self.search_list is not None:
+            self.clear_suggestions()
+            for suggestion in suggestions:    
+                item = OneLineListItem(text=suggestion)
+                item.bind(on_release=lambda x: print("WORKED!"))
+                self.search_list.add_widget(item)
 
+    def clear_suggestions(self):
+        if self.search_list is not None:
+            self.search_list.clear_widgets()
+
+
+
+    # Add a function to say when there is an error the app will say "Please input a bit more specific location"
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             if touch.is_double_tap:
@@ -353,13 +352,16 @@ class InteractiveMap(MapView):
 
 
     def get_coordinates_by_address(self, address):
+        #REMOVE ALL EXSISTING ELEMENTS IN TUPLE EVERYTIME USER ENTERS THE LOC IN MDTEXTFIELD
+
+
         address = parse.quote(address)
         
         # Use a unique user agent
         headers = {'User-Agent': 'SanDaan/1.0'}
 
         # Used Nominatim for easier Geocoding instead of OSM API because it doesn't have geocoding and reverse geocoding
-        url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=1'
+        url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=10&limit=10'
         UrlRequest(url, on_success=self.success, on_failure=self.failure, on_error=self.error, req_headers=headers)
     
     def get_directions(self, origin: Coordinate, destination: Coordinate, mode: str):
@@ -402,10 +404,12 @@ class InteractiveMap(MapView):
 
 
     def success(self, urlrequest, result):
-        latitude = float(result[0]['lat'])
+        """ latitude = float(result[0]['lat'])
         longitude = float(result[0]['lon'])
         self.centralize_map_on(Coordinate(latitude, longitude))
-        self.zoom = 15
+        self.zoom = 15 """
+        for res in result:
+            self.add_suggestion([res['display_name']])
 
 
     def failure(self, urlrequest, result):
@@ -428,18 +432,9 @@ class MainApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
-        self.screen_manager.add_widget(Builder.load_string(SEARCH_SCREEN))
-        sc = Builder.load_string(SEARCH_SCREEN)
-        self.screen_manager.add_widget(sc)
-
-        Clock.schedule_once(lambda dt: self.add_buttons(sc), 0.5)
+        #self.screen_manager.add_widget(Builder.load_string(SEARCH_SCREEN))
 
         return self.screen_manager
-    
-    def add_buttons(self, screen):
-        md_list = screen.ids.search_list
-        for i in range(20):
-            md_list.add_widget(MDFlatButton(text=f"Button {i+1}"))
 
     def verify_login(self, username_or_email, password):
         print(username_or_email, password)
