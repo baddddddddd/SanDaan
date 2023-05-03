@@ -2,9 +2,10 @@ from kivy.clock import Clock
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import MDList, OneLineListItem
+from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
 import json
 
@@ -61,6 +62,20 @@ class RouteInformation(BoxLayout):
         )
         self.desc_field.bind(height=self.update_height)
         self.add_widget(self.desc_field)
+
+        self.time_button = MDRaisedButton(
+            text="Open time picker",
+            pos_hint={'center_x': .5, 'center_y': .5},
+            on_release=self.show_time_picker,
+        )
+
+        self.time_dialog = MDTimePicker()
+        self.add_widget(self.time_button)
+
+
+    def show_time_picker(self, *args):
+        self.time_dialog.open()
+
 
     def update_height(self, *args):
         self.height = sum([children.height for children in self.children])
@@ -134,7 +149,8 @@ class RouteMapping(InteractiveMap):
     
 
     def update_dialog_height(self, *args):
-        self.dialog.update_height(sum([children.height for children in self.dialog.content_cls.children]))
+        new_height = sum([children.height for children in self.dialog.content_cls.children])
+        self.dialog.update_height(new_height)
         
 
     def on_touch_down(self, touch):
