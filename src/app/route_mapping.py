@@ -4,6 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
 from kivymd.uix.list import MDList, OneLineListItem
 from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
@@ -34,14 +35,8 @@ MDScreen:
             zoom: 15
 
         MDFloatingActionButton:
-            icon: "map-plus"
-            pos_hint: {"center_x": 0.875, "center_y": 0.125}
-            on_release:
-                map_routing.connect_all_pins()
-
-        MDFloatingActionButton:
             icon: "upload"
-            pos_hint: {"center_x": 0.875, "center_y": 0.235}
+            pos_hint: {"center_x": 0.875, "center_y": 0.125}
             on_release:
                 map_routing.confirm_route()
         
@@ -63,18 +58,31 @@ class RouteInformation(BoxLayout):
         self.desc_field.bind(height=self.update_height)
         self.add_widget(self.desc_field)
 
-        self.time_button = MDRaisedButton(
-            text="Open time picker",
+        self.start_time_button = MDRaisedButton(
+            text="Pick Start Time",
             pos_hint={'center_x': .5, 'center_y': .5},
-            on_release=self.show_time_picker,
+            on_release=self.show_start_time_picker,
         )
 
-        self.time_dialog = MDTimePicker()
-        self.add_widget(self.time_button)
+        self.start_time_dialog = MDTimePicker()
+        self.add_widget(self.start_time_button)
+
+        self.end_time_button = MDRaisedButton(
+            text="Pick End Time",
+            pos_hint={'center_x': .5, 'center_y': .5},
+            on_release=self.show_end_time_picker,
+        )
+
+        self.end_time_dialog = MDTimePicker()
+        self.add_widget(self.end_time_button)
 
 
-    def show_time_picker(self, *args):
-        self.time_dialog.open()
+    def show_start_time_picker(self, *args):
+        self.start_time_dialog.open()
+
+    
+    def show_end_time_picker(self, *args):
+        self.end_time_dialog.open()
 
 
     def update_height(self, *args):
