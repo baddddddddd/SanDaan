@@ -1,0 +1,5 @@
+Flask==2.2.2
+Gunicorn
+mysql-connector-python
+osmnx
+scikit-learn

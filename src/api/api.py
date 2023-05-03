@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, session
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_bcrypt import bcrypt
 import mysql.connector
 import os
@@ -9,7 +9,6 @@ import networkx as nx
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 jwt = JWTManager(app)
-bcrypt = bcrypt(app)
 
 db = mysql.connector.connect(
     host=os.getenv("HOST"),
@@ -28,9 +27,9 @@ def register():
     pswd = json['password']
     salt = bcrypt.gensalt()
     hashed_pswd = bcrypt.hashpw(pswd.encode('utf-8'), salt)
-    if email and user and hashed_pswd and salt and request.method == 'POST':
-        query = "INSERT INTO users(email, username, password, salt) VALUES( %s, %s, %s, %s)"
-        data = (email, user, hashed_pswd,salt)            
+    if email and user and hashed_pswd and request.method == 'POST':
+        query = "INSERT INTO app_users(email, username, password) VALUES( %s, %s, %s)"
+        data = (email, user, hashed_pswd)            
         cursor.execute(query, data)
         db.commit()
         response = jsonify('REGISTERED SUCCESSFULLY')
@@ -41,17 +40,16 @@ def register():
     
 @app.route('/login', methods=['POST'])
 def login():
-    user = request.json.get('user_db')
-    pswd = request.json.get('pswd_db').encode('utf-8')
+    user = request.json.get('username')
+    pswd = request.json.get('password').encode("utf-8")
 
-    cursor.execute("SELECT * FROM users WHERE username = %s", (user,))
+    cursor.execute("SELECT * FROM app_users WHERE username = %s", (user,))
     result = cursor.fetchone()
 
     if result is not None:
-        salt = result[4].encode('utf-8')
-        hash_input_pswd = bcrypt.hashpw(pswd, salt)
-        if bcrypt.checkpw(pswd, hash_input_pswd):
-            access_token = create_access_token(identity=result[3])
+        hashed_pswd = result[3].encode("ascii")
+        if bcrypt.checkpw(pswd, hashed_pswd):
+            access_token = create_access_token(identity=result[0])
             return jsonify(access_token=access_token), 200
         else:
             return jsonify({'message': 'Invalid credentials'}), 401
@@ -61,15 +59,8 @@ def login():
 @app.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
-    user_id = jwt.get_jwt_identity()
-
-    cursor = db.cursor()
-    query = "SELECT user_id, username FROM users WHERE user_id = %s"
-    data = (user_id,)
-    cursor.execute(query, data)
-    user = cursor.fetchone()
-
-    return jsonify({'user': {'id': user[0], 'username': user[1]}}), 200
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user),200
 
 @app.errorhandler(404)
 def showMessage(error=None):
