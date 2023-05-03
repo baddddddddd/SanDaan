@@ -1,4 +1,6 @@
 Flask==2.2.2
+flask-jwt-extended
+flask-bcrypt
 Gunicorn
 mysql-connector-python
 osmnx

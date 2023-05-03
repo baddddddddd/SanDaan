@@ -1,4 +1,6 @@
 from flask import Flask, jsonify, request
+from flask_bcrypt import bcrypt
+from flask_jwt_extended import JWTManager, create_access_token
 
 import json
 import mysql.connector
@@ -7,7 +9,10 @@ import osmnx as ox
 import networkx as nx
 import math
 
+
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+jwt = JWTManager(app)
 
 db = mysql.connector.connect(
     host=os.getenv("HOST"),
@@ -30,7 +35,64 @@ def manage_account():
     elif request.method == "POST":
         pass
 
+@app.route("/register", methods=["POST"])
+def register():
+    if request.method == "POST":
+        json = request.json
         
+        email = json.get("email", None)
+        username = json.get("username", None)
+        password = json.get("password", None)
+    
+        # If one of these tthree is None return invalid
+        
+        salt = bcrypt.gensalt()
+        hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+        query = "SELECT * FROM users WHERE username=%s OR email=%s"
+        params = (username, email)
+        cursor.execute(query, params)
+        result = cursor.fetchone()
+
+        if result is not None:
+            # If username is already taken or email is already taken, return invalid
+            return
+
+        query = "INSERT INTO users (username, email, password) VALUES(%s, %s, %s)"
+        params = (username, email, hashed_pw)            
+        cursor.execute(query, params)
+        db.commit()
+
+        return jsonify({
+            "success": True
+        }), 200
+        
+
+@app.route("/login", methods=["POST"])
+def login():
+    json = request.json
+    username = json.get("username", None)
+    password = json.get("password", None)
+
+    # if any of these two is None, return invalid
+
+    query = "SELECT * FROM users WHERE username=%s OR email=%s"
+    params = (username, username)
+    cursor.execute(query, params)
+    result = cursor.fetchone()
+
+    # Check if user exists in the databse
+    if result is None:
+        return jsonify({"message": "User not found"}), 404
+
+    hashed_pw = result[3].encode("ascii")
+    if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
+        access_token = create_access_token(identity=result[0])
+        return jsonify({"access_token": access_token}), 200
+    
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
+    
 
 @app.route("/directions", methods=["POST"])
 def get_directions():

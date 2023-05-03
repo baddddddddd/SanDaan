@@ -1,8 +1,11 @@
 from kivy.core.text import LabelBase
 from kivy.lang import Builder
+from kivy.network.urlrequest import UrlRequest
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
+import json
 
+from common import API_URL
 from route_mapping import MAP_ROUTING_SCREEN
 from main_mapview import MAPVIEW_SCREEN
 
@@ -121,7 +124,7 @@ MDScreen:
             color: "#a8dadc"
 
         MDTextField:
-            id: email
+            id: username
             hint_text: "Username"
             font_name: "MPoppins"
             size_hint_x: 0.8
@@ -150,7 +153,7 @@ MDScreen:
             font_size: 16
 
         MDTextField:
-            id: password
+            id: confirm_password
             hint_text: "Confirm Password"
             font_name: "MPoppins"
             password: True
@@ -166,9 +169,8 @@ MDScreen:
             padding: [24, 14, 24, 14]
             font_name: "BPoppins"
             on_release:
-                root.manager.transition.direction = "left"
-                root.manager.transition.duration = 0.3
-                root.manager.current = "signup"
+                app.create_account(username.text, email.text, password.text, confirm_password.text)
+                
 '''
 
 # Finding jeepney routes algorithm
@@ -186,22 +188,54 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Cyan"
         
         self.screen_manager = ScreenManager()
-        self.screen_manager.add_widget(Builder.load_string(MAP_ROUTING_SCREEN))
-        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
+        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
+        self.screen_manager.add_widget(Builder.load_string(MAP_ROUTING_SCREEN))
 
         return self.screen_manager
     
 
-    def verify_login(self, username_or_email, password):
-        print(username_or_email, password)
+    def create_account(self, username: str, email: str, password: str, confirm_password: str):
+        if password != confirm_password:
+            # Show error message the password repeat is wrong
+            return
         
-        is_logged_in = True
+        url = f"{API_URL}/register"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        body = json.dumps({
+            "username": username,
+            "email": email,
+            "password": password,
+        })
 
-        if is_logged_in:
-            self.screen_manager.current = "mapview"
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.show_main_screen)
+
+
+    def verify_login(self, username: str, password: str):
+        url = f"{API_URL}/login"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        body = json.dumps({
+            "username": username,
+            "password": password,
+        })
+
+        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.show_main_screen)
+
+
+    def show_main_screen(self, urlrequest, result):
+        self.screen_manager.transition.direction = "left"
+        self.screen_manager.transition.duration = 0.3
+        self.screen_manager.current = "mapview"
 
 
 if __name__ == "__main__":
