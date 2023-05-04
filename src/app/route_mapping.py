@@ -10,7 +10,7 @@ from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
 import json
 
-from common import API_URL
+from common import API_URL, HEADERS
 from interactive_map import InteractiveMap
 
 
@@ -195,16 +195,12 @@ class RouteMapping(InteractiveMap):
         
         url = f"{API_URL}/route"
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
         pin_coords = [(pin.lat, pin.lon) for pin in self.pins[-2:]]
         body = json.dumps({
             "pins": pin_coords,
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.connect_route)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.connect_route)
 
         self.waiting_for_route = True
 
@@ -223,16 +219,12 @@ class RouteMapping(InteractiveMap):
     def connect_all_pins(self):
         url = f"{API_URL}/route"
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
         pin_coords = [(pin.lat, pin.lon) for pin in self.pins]
         body = json.dumps({
             "pins": pin_coords,
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.redraw_all)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.redraw_all)
         
         self.waiting_for_route = True
 
@@ -253,14 +245,10 @@ class RouteMapping(InteractiveMap):
     def upload_route(self):
         url = f"{API_URL}/add_route"
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
         body = json.dumps({
             "name": "gch",
             "description": "wala lang",
             "coords": self.graphed_route,
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.draw_directions)

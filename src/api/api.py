@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_bcrypt import bcrypt
-from flask_jwt_extended import JWTManager, create_access_token
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 
 import json
 import mysql.connector
@@ -23,17 +23,6 @@ db = mysql.connector.connect(
 
 cursor = db.cursor()
 
-
-@app.route("/account", methods=["GET"])
-def manage_account():
-    if request.method == "GET":
-        cursor.execute("SELECT * FROM users WHERE username=\"eluxe\"")
-        user = cursor.fetchone()
-        print(user)
-        return "done"
-
-    elif request.method == "POST":
-        pass
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -155,6 +144,7 @@ def get_center(points: list):
 
 
 @app.route("/route", methods=["POST"])
+@jwt_required()
 def get_route():
     if request.method == "POST":
         data = request.get_json()

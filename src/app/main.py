@@ -5,7 +5,7 @@ from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 import json
 
-from common import API_URL
+from common import API_URL, HEADERS
 from main_mapview import MAPVIEW_SCREEN
 
 
@@ -187,10 +187,10 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Cyan"
         
         self.screen_manager = ScreenManager()
-        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
+        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
 
         return self.screen_manager
     
@@ -231,6 +231,8 @@ class MainApp(MDApp):
 
 
     def show_main_screen(self, urlrequest, result):
+        HEADERS["Authorization"] = f"Bearer {result['access_token']}"
+
         self.screen_manager.transition.direction = "left"
         self.screen_manager.transition.duration = 0.3
         self.screen_manager.current = "mapview"

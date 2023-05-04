@@ -68,6 +68,7 @@ class NavBar(MDBottomNavigation):
 
         Clock.schedule_once(self.on_widget_built)
 
+
     def on_widget_built(self, dt):
         self.add_widget(Builder.load_string(ROUTE_FINDING_TAB))
         self.add_widget(Builder.load_string(ROUTE_MAPPING_TAB))
