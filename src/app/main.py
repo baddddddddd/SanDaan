@@ -6,7 +6,6 @@ from kivymd.app import MDApp
 import json
 
 from common import API_URL
-from route_mapping import MAP_ROUTING_SCREEN
 from main_mapview import MAPVIEW_SCREEN
 
 
@@ -188,11 +187,10 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Cyan"
         
         self.screen_manager = ScreenManager()
+        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
-        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
-        self.screen_manager.add_widget(Builder.load_string(MAP_ROUTING_SCREEN))
 
         return self.screen_manager
     

@@ -14,7 +14,7 @@ from common import API_URL
 from interactive_map import InteractiveMap
 
 
-MAP_ROUTING_SCREEN = '''
+ROUTE_MAPPING_TAB = '''
 #:import MapView kivy_garden.mapview.MapView
 
 <RouteInformation>:
@@ -24,8 +24,10 @@ MAP_ROUTING_SCREEN = '''
     height: "120dp"
 
 
-MDScreen:
-    name: "map_routing"
+MDBottomNavigationItem:
+    name: "route_mapping"
+    text: "Contribute"
+    icon: "map-plus"
 
     FloatLayout:
         RouteMapping:
@@ -35,7 +37,7 @@ MDScreen:
             zoom: 15
 
         MDFloatingActionButton:
-            icon: "upload"
+            icon: "check-bold"
             pos_hint: {"center_x": 0.875, "center_y": 0.125}
             on_release:
                 map_routing.confirm_route()

@@ -1,16 +1,36 @@
+from kivy.clock import Clock
+from kivy.lang.builder import Builder
 from kivy.network.urlrequest import UrlRequest
 from kivy_garden.mapview import MapLayer, MapMarker, Coordinate
+from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
+from kivymd.uix.bottomsheet import MDListBottomSheet
 from urllib import parse
 
 from interactive_map import InteractiveMap
+from route_mapping import ROUTE_MAPPING_TAB
 
 
 MAPVIEW_SCREEN = '''
 #:import MapView kivy_garden.mapview.MapView
 
+<NavBar>:
+    #panel_color: "#eeeaea"
+    selected_color_background: "orange"
+    text_color_active: "lightgrey"
+
 
 MDScreen:
-    name: "mapview"
+    name: "mapview"        
+
+    NavBar:
+        #
+'''
+
+ROUTE_FINDING_TAB = '''
+MDBottomNavigationItem:
+    name: "route_finding"
+    text: "Routes"
+    icon: "routes"
 
     FloatLayout:
         MainMapView:
@@ -38,8 +58,19 @@ MDScreen:
             icon: "directions"
             pos_hint: {"center_x": 0.875, "center_y": 0.125}
             on_release:
-                map.request_directions()    
+                map.request_directions() 
 '''
+
+
+class NavBar(MDBottomNavigation):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        Clock.schedule_once(self.on_widget_built)
+
+    def on_widget_built(self, dt):
+        self.add_widget(Builder.load_string(ROUTE_FINDING_TAB))
+        self.add_widget(Builder.load_string(ROUTE_MAPPING_TAB))
 
 
 class MainMapView(InteractiveMap):
@@ -48,6 +79,16 @@ class MainMapView(InteractiveMap):
 
         self.pinned_location = None
         self.pinned_location_pin = None
+
+        self.route_bottomsheet = MDListBottomSheet()
+
+        for i in range(1, 11):
+            self.route_bottomsheet.add_item(
+                f"Standart Item {i}",
+                lambda x, y=i: self.callback_for_menu_items(
+                    f"Standart Item {y}"
+                ),
+            )
 
 
     def on_touch_down(self, touch):
@@ -80,6 +121,8 @@ class MainMapView(InteractiveMap):
 
 
     def request_directions(self):
+        self.route_bottomsheet.open()
+
         if self.pinned_location is not None:
             self.get_directions(self.current_location, self.pinned_location, "drive")
 
