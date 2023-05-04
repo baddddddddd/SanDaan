@@ -202,32 +202,24 @@ class MainApp(MDApp):
         
         url = f"{API_URL}/register"
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
         body = json.dumps({
             "username": username,
             "email": email,
             "password": password,
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.show_main_screen)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_main_screen)
 
 
     def verify_login(self, username: str, password: str):
         url = f"{API_URL}/login"
-        
-        headers = {
-            "Content-Type": "application/json"
-        }
         
         body = json.dumps({
             "username": username,
             "password": password,
         })
 
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.show_main_screen)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_main_screen)
 
 
     def show_main_screen(self, urlrequest, result):
