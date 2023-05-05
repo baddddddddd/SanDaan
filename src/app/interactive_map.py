@@ -3,6 +3,7 @@ from kivy.network.urlrequest import UrlRequest
 from kivy.utils import platform
 from kivy_garden.mapview import MapView, MapMarker, Coordinate
 from plyer import gps
+from urllib import parse
 import json
 
 from common import API_URL
@@ -97,6 +98,26 @@ class InteractiveMap(MapView):
         })
 
         UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions, on_failure=self.handle_connection_error)
+
+
+    def get_address_by_location(self, coord: Coordinate, on_success_callback):
+        url = "https://nominatim.openstreetmap.org/reverse?"
+
+        params = {
+            "lat": coord.lat,
+            "lon": coord.lon,
+            "format": "json",
+            "addressdetails": 1,
+            "zoom": 10,
+        }
+
+        url_params = parse.urlencode(params)
+        url += url_params
+
+        # Use a unique user agent
+        headers = {'User-Agent': 'SanDaan/1.0'}
+
+        UrlRequest(url=url, req_headers=headers, on_success=on_success_callback)
 
 
     def draw_directions(self, urlrequest, result):
