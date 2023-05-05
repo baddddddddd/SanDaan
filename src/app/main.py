@@ -203,14 +203,14 @@ MDScreen:
             size_hint_x: 0.9
             pos_hint: {"center_x": 0.5, "top": 0.98}
             on_text_validate:
-                if app.root.get_screen("mapview"): map = app.root.get_screen("mapview").ids.map, map.get_coordinates_by_address(search_location.text), map.add_suggestion([search_location.text])
-                #app.root.get_screen("mapview").ids.map.get_coordinates_by_address(search_location.text) if app.root.get_screen("mapview") else None
+                if app.root.get_screen("mapview"): map = app.root.get_screen("mapview").ids.map 
+                map.clear_suggestions(), map.get_coordinates_by_address(search_location.text)
         MDScrollView:
             size_hint: 0.9, 0.4
             pos_hint: {'center_x': 0.5, 'top': 0.9}
             MDList:
                 id: search_list
-                md_bg_color: (1, 0 ,0, 1)
+                md_bg_color: (0, 0, 1, 0.6)
         MDFloatingActionButton:
             icon: "crosshairs-gps"
             pos_hint: {"center_x": 0.875, "center_y": 0.235}
@@ -259,22 +259,27 @@ class InteractiveMap(MapView):
         self.graphed_route = None
         self.graph_line = None
 
-    #search_list = ObjectProperty()
     def set_search_list(self, search_list):
         self.search_list = search_list
-    
-    def add_suggestion(self, suggestions): # ONLY 1 APPEARS IN THE LIST
+    """
+    def add_suggestion(self, suggestions):
         if self.search_list is not None:
-            self.clear_suggestions()
-            for suggestion in suggestions:    
-                item = OneLineListItem(text=suggestion)
-                item.bind(on_release=lambda x: print("WORKED!"))
+            if len(self.search_list.children) == 0:
+                # create a new suggestion list if it doesn't exist
+                #for suggestion in suggestions:
+                item = OneLineListItem(text=suggestions)
+                item.bind(on_release=lambda x: self.on_suggestion_selected(suggestions))
                 self.search_list.add_widget(item)
+            else:
+                # add new suggestions to the existing list
+                #for suggestion in suggestions:
+                item = OneLineListItem(text=suggestions)
+                item.bind(on_release=lambda x: self.on_suggestion_selected(suggestions))
+                self.search_list.add_widget(item) """
 
     def clear_suggestions(self):
         if self.search_list is not None:
             self.search_list.clear_widgets()
-
 
 
     # Add a function to say when there is an error the app will say "Please input a bit more specific location"
@@ -325,6 +330,7 @@ class InteractiveMap(MapView):
 
 
     def centralize_map_on(self, coords: Coordinate):
+        print(coords.lat, coords.lon)
         self.center_on(coords.lat, coords.lon)
         self.redraw_route()
 
@@ -404,12 +410,23 @@ class InteractiveMap(MapView):
 
 
     def success(self, urlrequest, result):
-        """ latitude = float(result[0]['lat'])
-        longitude = float(result[0]['lon'])
-        self.centralize_map_on(Coordinate(latitude, longitude))
-        self.zoom = 15 """
-        for res in result:
-            self.add_suggestion([res['display_name']])
+        search_results = result
+        if self.search_list is not None: 
+            for res in search_results: 
+                if len(self.search_list.children) == 0:
+                    # create a new suggestion list if it doesn't exist
+                    #for suggestion in suggestions:
+                    item = OneLineListItem(text=res['display_name'])
+                    item.bind(on_release=lambda x: self.centralize_map_on(Coordinate(float(res['lat']), float(res['lon']))))
+                    print(Coordinate(float(res['lat']), float(res['lon'])))
+                    self.search_list.add_widget(item)
+                else:
+                    # add new suggestions to the existing list
+                    #for suggestion in suggestions:
+                    item = OneLineListItem(text=res['display_name'])
+                    item.bind(on_release=lambda x: self.centralize_map_on(Coordinate(float(res['lat']), float(res['lon']))))
+                    print(Coordinate(float(res['lat']), float(res['lon'])))
+                    self.search_list.add_widget(item)
 
 
     def failure(self, urlrequest, result):
