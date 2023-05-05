@@ -77,7 +77,11 @@ def login():
     hashed_pw = result[3].encode("ascii")
     if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
         access_token = create_access_token(identity=result[0])
-        return jsonify({"access_token": access_token}), 200
+        id = result[0]
+        return jsonify({
+            "access_token": access_token,
+            "id": id,
+        }), 200
     
     else:
         return jsonify({"message": "Invalid credentials"}), 401
@@ -144,7 +148,7 @@ def get_center(points: list):
 
 
 @app.route("/route", methods=["POST"])
-# @jwt_required()
+@jwt_required()
 def get_route():
     if request.method == "POST":
         data = request.get_json()
@@ -184,15 +188,34 @@ def get_route():
 
         route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
 
-        with open("res.txt", "a") as f:
-            f.write(str(route))
-
         return jsonify({
             "route": route
         })
     
 
+def fetch_id_or_insert(table, column, value):
+    query = f"SELECT * FROM {table} WHERE {column}=%s"
+    params = (value,)
+    cursor.execute(query, params)
+    result = cursor.fetchone()
+
+    if result is not None:
+        id = result[0]
+        return id
+    else:
+        query = f"INSERT INTO {table} ({column}) VALUES (%s)"
+        params = (value,)
+        cursor.execute(query, params)
+        db.commit()
+        
+        query = "SELECT LAST_INSERT_ID()"
+        cursor.execute(query)
+        id = cursor.fetchone()[0]
+        return id
+    
+
 @app.route("/contribute", methods=["POST"])
+@jwt_required()
 def add_route():
     if request.method == "POST":
         data = request.json
@@ -202,51 +225,33 @@ def add_route():
         start_time = data.get("start_time", None)
         end_time = data.get("end_time", None)
         coords = data.get("coords", None)
+        uploader_id = data.get("uploader_id", None)
 
         region = data.get("region", None)
-        state = data.get("state", None)
-        city_id = data.get("city_id", None)
-        # uploader_id
+        region_id = fetch_id_or_insert("regions", "name", region)
 
-        query = "INSERT INTO routes (name, description, start_time, end_time, coords) VALUES (%s, %s, %s, %s, %s)"
-        params = (name, description, start_time, end_time, json.dumps(coords))
+        state = data.get("state", None)
+        state_id = fetch_id_or_insert("states", "name", state)
+
+        city_id = data.get("city_id", None)
+
+        # Insert route information into routes table
+        query = "INSERT INTO routes (name, description, start_time, end_time, coords, uploader_id) VALUES (%s, %s, %s, %s, %s, %s)"
+        params = (name, description, start_time, end_time, json.dumps(coords), uploader_id)
         cursor.execute(query, params)
         db.commit()
+
+        # Get the resulting route id
+        query = "SELECT LAST_INSERT_ID()"
+        cursor.execute(query)
+        route_id = cursor.fetchone()[0]
+
+        # Insert route area into route_areas table
+        query = "INSERT INTO route_areas (region_id, state_id, city_id, route_id) VALUES (%s, %s, %s, %s)"
+        params = (region_id, state_id, city_id, route_id)
+        cursor.execute(query, params)
+        db.commit() 
 
         return jsonify({
             "message": "Uploaded route successfully."
         }), 200
-
-
-
-@app.route("/add_route", methods=["POST"])
-def add_route2():
-    if request.method == "POST":
-        data = request.get_json()
-
-        print(data)
-
-        name = data.get("name", None)
-        description = data.get("description", None)
-        coords = data.get("coords", None)
-
-        params = (name, description, json.dumps(coords))
-        query = "INSERT INTO routes (name, description, coords) VALUES (%s, %s, %s)"
-        cursor.execute(query,params)
-        db.commit()
-
-        return jsonify({
-            "success": True
-        })
-    
-# Storing routes in a database
-# Routes contain a list of coordinates (lat, lon)
-# Routes must have places specified (ie, Batangas City, Alangilan, Laguna)
-# Routes must have names and descriptions
-# Store routes to databasee in JSON string format
-
-# Finding a commute route in a database
-# Get shortest path between starting location and target location
-# Convert path to list of Coordinates
-# Get all routes that are in the same location or vicinity of target and starting location
-# Find intersection between the shortest path and the filtered routes from the previous steps

@@ -9,7 +9,7 @@ from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
 import json
 
-from common import API_URL, HEADERS
+from common import API_URL, HEADERS, COMMON
 from interactive_map import InteractiveMap
 
 
@@ -306,7 +306,7 @@ class RouteMapping(InteractiveMap):
 
         # Upload the route using the API
         url = f"{API_URL}/contribute"
-        
+                
         body = json.dumps({
             "name": name,
             "description": desc,
@@ -316,11 +316,12 @@ class RouteMapping(InteractiveMap):
             "region": route_region,
             "state": route_state,
             "city_id": route_city,
+            "uploader_id": COMMON["id"],
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=lambda urlrequest, result: self.show_upload_success)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_upload_success)
 
 
-    def show_upload_success(self):
+    def show_upload_success(self, urlrequest, result):
         # Show dialog that the upload is success
-        print("Success")
+        print(result)
