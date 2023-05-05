@@ -1,16 +1,13 @@
-from kivy.app import App
+from kivymd.app import MDApp
 from kivy.core.text import LabelBase
-from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics import Color, Line
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform, get_color_from_hex
 from kivy.network.urlrequest import UrlRequest
 from kivy_garden.mapview import MapMarker, MapView, Coordinate
-from kivymd.app import MDApp
-from kivymd.uix.button import MDFlatButton
 from kivy.properties import ObjectProperty
-from kivymd.uix.list import MDList, OneLineListItem
-from kivy.clock import Clock
+from kivymd.uix.list import OneLineListItem
 from plyer import gps
 from urllib import parse
 import json
@@ -243,7 +240,6 @@ class InteractiveMap(MapView):
         self.pinned_location_pin = None
 
         self.has_initialized_gps = False
-
         # Request permission for accessing GPS in Android devices
         if platform == "android":
             from android.permissions import request_permissions, Permission
@@ -261,26 +257,10 @@ class InteractiveMap(MapView):
 
     def set_search_list(self, search_list):
         self.search_list = search_list
-    """
-    def add_suggestion(self, suggestions):
-        if self.search_list is not None:
-            if len(self.search_list.children) == 0:
-                # create a new suggestion list if it doesn't exist
-                #for suggestion in suggestions:
-                item = OneLineListItem(text=suggestions)
-                item.bind(on_release=lambda x: self.on_suggestion_selected(suggestions))
-                self.search_list.add_widget(item)
-            else:
-                # add new suggestions to the existing list
-                #for suggestion in suggestions:
-                item = OneLineListItem(text=suggestions)
-                item.bind(on_release=lambda x: self.on_suggestion_selected(suggestions))
-                self.search_list.add_widget(item) """
-
+    
     def clear_suggestions(self):
         if self.search_list is not None:
             self.search_list.clear_widgets()
-
 
     # Add a function to say when there is an error the app will say "Please input a bit more specific location"
     def on_touch_down(self, touch):
@@ -367,7 +347,7 @@ class InteractiveMap(MapView):
         headers = {'User-Agent': 'SanDaan/1.0'}
 
         # Used Nominatim for easier Geocoding instead of OSM API because it doesn't have geocoding and reverse geocoding
-        url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=10&limit=10'
+        url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=10'
         UrlRequest(url, on_success=self.success, on_failure=self.failure, on_error=self.error, req_headers=headers)
     
     def get_directions(self, origin: Coordinate, destination: Coordinate, mode: str):
@@ -409,26 +389,17 @@ class InteractiveMap(MapView):
         print("Connection Error")
 
 
+    
     def success(self, urlrequest, result):
-        search_results = result
-        if self.search_list is not None: 
-            for res in search_results: 
-                if len(self.search_list.children) == 0:
-                    # create a new suggestion list if it doesn't exist
-                    #for suggestion in suggestions:
-                    item = OneLineListItem(text=res['display_name'])
-                    item.bind(on_release=lambda x: self.centralize_map_on(Coordinate(float(res['lat']), float(res['lon']))))
-                    print(Coordinate(float(res['lat']), float(res['lon'])))
-                    self.search_list.add_widget(item)
-                else:
-                    # add new suggestions to the existing list
-                    #for suggestion in suggestions:
-                    item = OneLineListItem(text=res['display_name'])
-                    item.bind(on_release=lambda x: self.centralize_map_on(Coordinate(float(res['lat']), float(res['lon']))))
-                    print(Coordinate(float(res['lat']), float(res['lon'])))
-                    self.search_list.add_widget(item)
-
-
+        #from time import sleep
+        for res in result:
+            item = OneLineListItem(
+                text=res['display_name'],
+                on_release=lambda x, lat=float(res['lat']), lon=float(res['lon']): self.centralize_map_on(Coordinate(lat, lon))
+                )
+            self.search_list.add_widget(item)
+        return
+        
     def failure(self, urlrequest, result):
         print("Failed")
         print(result)
