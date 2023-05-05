@@ -1,15 +1,12 @@
-from kivy.app import App
 from kivy.core.text import LabelBase
-from kivy.graphics import Color, Line
 from kivy.lang import Builder
-from kivy.uix.screenmanager import ScreenManager
-from kivy.utils import platform
 from kivy.network.urlrequest import UrlRequest
-from kivy_garden.mapview import MapMarker, MapView, Coordinate
+from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
-from plyer import gps
-from urllib import parse
 import json
+
+from common import API_URL, HEADERS
+from main_mapview import MAPVIEW_SCREEN
 
 
 WELCOME_SCREEN = '''
@@ -40,7 +37,6 @@ MDScreen:
                 root.manager.transition.duration = 0.3
                 root.manager.current = "signup"
 '''
-
 
 LOGIN_SCREEN = '''
 MDScreen:
@@ -127,7 +123,7 @@ MDScreen:
             color: "#a8dadc"
 
         MDTextField:
-            id: email
+            id: username
             hint_text: "Username"
             font_name: "MPoppins"
             size_hint_x: 0.8
@@ -156,7 +152,7 @@ MDScreen:
             font_size: 16
 
         MDTextField:
-            id: password
+            id: confirm_password
             hint_text: "Confirm Password"
             font_name: "MPoppins"
             password: True
@@ -172,226 +168,18 @@ MDScreen:
             padding: [24, 14, 24, 14]
             font_name: "BPoppins"
             on_release:
-                root.manager.transition.direction = "left"
-                root.manager.transition.duration = 0.3
-                root.manager.current = "signup"
+                app.create_account(username.text, email.text, password.text, confirm_password.text)
+                
 '''
 
-MAPVIEW_SCREEN = '''
-#:import MapView kivy_garden.mapview.MapView
-
-
-MDScreen:
-    name: "mapview"
-
-    FloatLayout:
-        InteractiveMap:
-            id: map
-            lat: 13.78530
-            lon: 121.07339
-            zoom: 15
-
-        MDTextField:
-            id: search_location
-            hint_text: "Search location"
-            mode: "round"
-            size_hint_x: 0.9
-            pos_hint: {"center_x": 0.5, "top": 0.98}
-            on_text_validate: 
-                map.get_coordinates_by_address(search_location.text)
-
-        MDFloatingActionButton:
-            icon: "crosshairs-gps"
-            pos_hint: {"center_x": 0.875, "center_y": 0.235}
-            on_release:
-                map.follow_user()
-
-        MDFloatingActionButton:
-            icon: "directions"
-            pos_hint: {"center_x": 0.875, "center_y": 0.125}
-            on_release:
-                map.request_directions()
-
-        
-            
-'''
-
-# SanDaan API URL for hosting API locally
-API_URL = "http://127.0.0.1:5000"
-
-
-class InteractiveMap(MapView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        # Default location, which is Batangas State University - Alangilan, coordinate if GPS is not available
-        self.current_location = Coordinate(13.78530, 121.07339)
-        self.current_location_pin = MapMarker(
-            lat=13.78530,
-            lon=121.07339,
-        )
-        self.add_widget(self.current_location_pin)
-
-        self.pinned_location = None
-        self.pinned_location_pin = None
-
-        self.has_initialized_gps = False
-
-        # Request permission for accessing GPS in Android devices
-        if platform == "android":
-            from android.permissions import request_permissions, Permission
-
-            request_permissions([Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION])
-            
-            gps.configure(on_location=self.update_location)
-            gps.start()
-
-            # SanDaan API URL for hosting API on the web server
-            API_URL = "https://sandaan-api.onrender.com"
-
-        self.graphed_route = None
-        self.graph_line = None
-
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            if touch.is_double_tap:
-                if self.pinned_location is None:
-                    self.place_pin(self.get_latlon_at(touch.x, touch.y, self.zoom))
-                else:
-                    self.remove_pin()
-
-        return super().on_touch_down(touch)
-    
-
-    def on_touch_move(self, touch):
-        if self.collide_point(*touch.pos):
-            self.redraw_route()
-
-        return super().on_touch_move(touch)
-    
-
-    def on_zoom(self, instance, zoom):
-        self.redraw_route()
-        return super().on_zoom(instance, zoom)
-
-
-    def place_pin(self, coordinate: Coordinate):
-        self.pinned_location = coordinate
-        self.pinned_location_pin = MapMarker(
-            lat=coordinate.lat,
-            lon=coordinate.lon,
-        )
-        self.add_widget(self.pinned_location_pin)
-
-
-    def remove_pin(self):
-        if self.graphed_route is not None:
-            self.graphed_route = None
-            self.canvas.remove(self.graph_line)
-        
-        self.pinned_location = None
-        self.remove_widget(self.pinned_location_pin)
-
-
-    def request_directions(self):
-        if self.pinned_location is not None:
-            self.get_directions(self.current_location, self.pinned_location, "drive")
-
-
-    def centralize_map_on(self, coords: Coordinate):
-        self.center_on(coords.lat, coords.lon)
-        self.redraw_route()
-
-
-    def follow_user(self):
-        self.centralize_map_on(self.current_location)
-        self.zoom = 15
-
-
-    def update_location(self, **kwargs):
-        if not self.has_initialized_gps:
-            self.has_initialized_gps = True
-            self.current_location = Coordinate(kwargs["lat"], kwargs["lon"])
-            self.centralize_map_on(self.current_location)
-            self.zoom = 15
-
-        self.current_location_pin.lat = kwargs["lat"]
-        self.current_location_pin.lon = kwargs["lon"]
-
-
-    def redraw_route(self):
-        if self.graphed_route is not None and self.graph_line is not None:
-            self.canvas.remove(self.graph_line)
-            self.draw_route(self.graphed_route)
-
-
-    def get_coordinates_by_address(self, address):
-        address = parse.quote(address)
-
-        # Use a unique user agent
-        headers = {'User-Agent': 'SanDaan/1.0'}
-
-        # Used Nominatim for easier Geocoding instead of OSM API because it doesn't have geocoding and reverse geocoding
-        url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=1'
-        UrlRequest(url, on_success=self.success, on_failure=self.failure, on_error=self.error, req_headers=headers)
-
-
-    def get_directions(self, origin: Coordinate, destination: Coordinate, mode: str):
-        url = f"{API_URL}/directions"
-        
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        body = json.dumps({
-            "origin": [origin.lat, origin.lon],
-            "destination": [destination.lat, destination.lon],
-            "mode": mode
-        })
-
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions, on_failure=self.handle_connection_error)
-
-
-    def draw_directions(self, urlrequest, result):
-        route = result["route"]
-        self.graphed_route = route
-
-        self.draw_route(self.graphed_route)
-
-    
-    def draw_route(self, route: list):
-        # Get the pixel coordinates that correspond with the coordinates on the route
-        points = [self.get_window_xy_from(coord[0], coord[1], self.zoom) for coord in route]
-
-        with self.canvas:
-            # Equivalent of rgba(29, 53, 87), which is the primary color of the palette used for UI
-            Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
-            self.graph_line = Line(points=points, width=3, cap="round", joint="round")
-
-
-    def handle_connection_error(self, urlrequest, result):
-        print(urlrequest)
-        print(result)
-        print("Connection Error")
-
-
-    def success(self, urlrequest, result):
-        latitude = float(result[0]['lat'])
-        longitude = float(result[0]['lon'])
-        self.centralize_map_on(Coordinate(latitude, longitude))
-        self.zoom = 15
-
-
-    def failure(self, urlrequest, result):
-        print("Failed")
-        print(result)
-
-
-    def error(self, urlrequest, result):
-        print("Error")
-        print(result)
-
+# Finding jeepney routes algorithm
+# 1. Find nearest node of initial location
+# 2. Find shortest path to nearest jeepney stop from initial location node
+# 3. Find nearest node of target location
+# 4. Find shortest path to nearest jeepney stop from target location node
+# 5. Determine the vicinity of two location nodes
+# 6. Fetch all the routes that is inside the vicinity
+# 7. Find routes that contain both the nodes of jeepney stops
 
 class MainApp(MDApp):
     def build(self):
@@ -399,21 +187,47 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Cyan"
         
         self.screen_manager = ScreenManager()
-        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
+        self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
 
         return self.screen_manager
     
 
-    def verify_login(self, username_or_email, password):
-        print(username_or_email, password)
+    def create_account(self, username: str, email: str, password: str, confirm_password: str):
+        if password != confirm_password:
+            # Show error message the password repeat is wrong
+            return
         
-        is_logged_in = True
+        url = f"{API_URL}/register"
+        
+        body = json.dumps({
+            "username": username,
+            "email": email,
+            "password": password,
+        })
 
-        if is_logged_in:
-            self.screen_manager.current = "mapview"
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_main_screen)
+
+
+    def verify_login(self, username: str, password: str):
+        url = f"{API_URL}/login"
+        
+        body = json.dumps({
+            "username": username,
+            "password": password,
+        })
+
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_main_screen)
+
+
+    def show_main_screen(self, urlrequest, result):
+        HEADERS["Authorization"] = f"Bearer {result['access_token']}"
+
+        self.screen_manager.transition.direction = "left"
+        self.screen_manager.transition.duration = 0.3
+        self.screen_manager.current = "mapview"
 
 
 if __name__ == "__main__":
