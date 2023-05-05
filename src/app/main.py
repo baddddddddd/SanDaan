@@ -192,6 +192,8 @@ class MainApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
 
+        self.screen_manager.current = "mapview"
+
         return self.screen_manager
     
 

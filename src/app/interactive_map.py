@@ -100,7 +100,7 @@ class InteractiveMap(MapView):
         UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions, on_failure=self.handle_connection_error)
 
 
-    def get_address_by_location(self, coord: Coordinate, on_success_callback):
+    def get_address_by_location(self, coord: Coordinate, on_success_callback, zoom = 10):
         url = "https://nominatim.openstreetmap.org/reverse?"
 
         params = {
@@ -108,7 +108,7 @@ class InteractiveMap(MapView):
             "lon": coord.lon,
             "format": "json",
             "addressdetails": 1,
-            "zoom": 10,
+            "zoom": zoom,
         }
 
         url_params = parse.urlencode(params)

@@ -150,11 +150,13 @@ class RouteMapping(InteractiveMap):
                 MDFlatButton(
                     text="OK",
                     theme_text_color="Custom",
-                    on_release=self.upload_route,
+                    on_release=lambda _, index = 0: self.get_route_address(index),
                 ),
             ],
         )
         self.route_information.bind(height=self.update_dialog_height)
+
+        self.route_addresses = []
     
 
     def update_dialog_height(self, *args):
@@ -241,13 +243,84 @@ class RouteMapping(InteractiveMap):
         self.dialog.dismiss()
 
 
-    def upload_route(self):
-        url = f"{API_URL}/add_route"
+    def get_route_address(self, index):
+        # Get location by address all the nodes by using nominatim and the bounding box
+        coord = self.graphed_route[index]
+        self.get_address_by_location(Coordinate(coord[0], coord[1]), lambda _, result: self.check_bounds(result, index))
+        
+
+    def check_bounds(self, result, index):
+        result["address"]["city_id"] = result["place_id"]
+        self.route_addresses.append(result["address"])
+
+        bounding_box = result["boundingbox"]
+        lat_min = float(bounding_box[0])
+        lat_max = float(bounding_box[1])
+        lon_min = float(bounding_box[2])
+        lon_max = float(bounding_box[3])
+
+        for i, coord in enumerate(self.graphed_route[index + 1:]):
+            lat = coord[0]
+            lon = coord[1]
+
+            # Check if any of the points is outside the bounding box of the place
+            if not (lat_min <= lat and lat <= lat_max and lon_min <= lon and lon <= lon_max):
+                self.get_route_address(index + i + 1)
+                return
+
+        self.upload_route()
+
+
+    def upload_route(self, *args):
+        # Get all the data from the dialog
+        route_info = self.dialog.content_cls
+
+        name = route_info.name_field.text
+        desc = route_info.desc_field.text
+        start_time = str(route_info.start_time_dialog.time)
+        end_time = str(route_info.end_time_dialog.time)
+
+        # Record all the places the route passes
+        cities = []
+        states = []
+        regions = []
+
+        for address in self.route_addresses:
+            city_id = address["city_id"]
+            state = address["state"]
+            region = address["region"]
+
+            if city_id not in cities:
+                cities.append(city_id)
+            
+            if state not in states:
+                states.append(state)
+
+            if region not in regions:
+                regions.append(region)
+
+        # Check if route crosses cities, states, or regions
+        route_region = regions[0] if len(regions) == 1 else None
+        route_state = states[0] if len(states) == 1 else None
+        route_city = cities[0] if len(cities) == 1 else None
+
+        # Upload the route using the API
+        url = f"{API_URL}/contribute"
         
         body = json.dumps({
-            "name": "gch",
-            "description": "wala lang",
+            "name": name,
+            "description": desc,
+            "start_time": start_time,
+            "end_time": end_time,
             "coords": self.graphed_route,
+            "region": route_region,
+            "state": route_state,
+            "city_id": route_city,
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.draw_directions)
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=lambda urlrequest, result: self.show_upload_success)
+
+
+    def show_upload_success(self):
+        # Show dialog that the upload is success
+        print("Success")

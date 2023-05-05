@@ -144,7 +144,7 @@ def get_center(points: list):
 
 
 @app.route("/route", methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def get_route():
     if request.method == "POST":
         data = request.get_json()
@@ -192,8 +192,35 @@ def get_route():
         })
     
 
-@app.route("/add_route", methods=["POST"])
+@app.route("/contribute", methods=["POST"])
 def add_route():
+    if request.method == "POST":
+        data = request.json
+
+        name = data.get("name", None)
+        description = data.get("description", None)
+        start_time = data.get("start_time", None)
+        end_time = data.get("end_time", None)
+        coords = data.get("coords", None)
+
+        region = data.get("region", None)
+        state = data.get("state", None)
+        city_id = data.get("city_id", None)
+        # uploader_id
+
+        query = "INSERT INTO routes (name, description, start_time, end_time, coords) VALUES (%s, %s, %s, %s, %s)"
+        params = (name, description, start_time, end_time, json.dumps(coords))
+        cursor.execute(query, params)
+        db.commit()
+
+        return jsonify({
+            "message": "Uploaded route successfully."
+        }), 200
+
+
+
+@app.route("/add_route", methods=["POST"])
+def add_route2():
     if request.method == "POST":
         data = request.get_json()
 
