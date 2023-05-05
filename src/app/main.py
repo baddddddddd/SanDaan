@@ -207,7 +207,7 @@ MDScreen:
             pos_hint: {'center_x': 0.5, 'top': 0.9}
             MDList:
                 id: search_list
-                md_bg_color: (0, 0, 1, 0.6)
+                md_bg_color: (0, 0, 0, 0)
         MDFloatingActionButton:
             icon: "crosshairs-gps"
             pos_hint: {"center_x": 0.875, "center_y": 0.235}
@@ -312,6 +312,7 @@ class InteractiveMap(MapView):
     def centralize_map_on(self, coords: Coordinate):
         print(coords.lat, coords.lon)
         self.center_on(coords.lat, coords.lon)
+        self.zoom = 15
         self.redraw_route()
 
 
@@ -395,7 +396,7 @@ class InteractiveMap(MapView):
         for res in result:
             item = OneLineListItem(
                 text=res['display_name'],
-                on_release=lambda x, lat=float(res['lat']), lon=float(res['lon']): self.centralize_map_on(Coordinate(lat, lon))
+                on_release=lambda x, lat=float(res['lat']), lon=float(res['lon']): (self.clear_suggestions(), self.centralize_map_on(Coordinate(lat, lon))), bg_color = (0, 0, 1, 0.6)
                 )
             self.search_list.add_widget(item)
         return
