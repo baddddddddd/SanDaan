@@ -6,7 +6,7 @@ from plyer import gps
 from urllib import parse
 import json
 
-from common import API_URL
+from common import API_URL, HEADERS
 
 
 class InteractiveMap(MapView):
@@ -84,22 +84,6 @@ class InteractiveMap(MapView):
             self.graphed_route = []
 
 
-    def get_directions(self, origin: Coordinate, destination: Coordinate, mode: str):
-        url = f"{API_URL}/directions"
-        
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        body = json.dumps({
-            "origin": [origin.lat, origin.lon],
-            "destination": [destination.lat, destination.lon],
-            "mode": mode
-        })
-
-        UrlRequest(url=url, req_headers=headers, req_body=body, on_success=self.draw_directions, on_failure=self.handle_connection_error)
-
-
     def get_address_by_location(self, coord: Coordinate, on_success_callback, zoom = 10):
         url = "https://nominatim.openstreetmap.org/reverse?"
 
@@ -128,6 +112,9 @@ class InteractiveMap(MapView):
 
     
     def draw_route(self, route: list):
+        # Remeber the graphed route for redrawing purposes
+        self.graphed_route = route
+        
         # Get the pixel coordinates that correspond with the coordinates on the route
         points = [self.get_window_xy_from(coord[0], coord[1], self.zoom) for coord in route]
 

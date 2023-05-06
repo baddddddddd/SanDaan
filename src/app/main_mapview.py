@@ -5,7 +5,9 @@ from kivy_garden.mapview import MapLayer, MapMarker, Coordinate
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
 from kivymd.uix.bottomsheet import MDListBottomSheet
 from urllib import parse
+import json
 
+from common import API_URL, HEADERS
 from interactive_map import InteractiveMap
 from route_mapping import ROUTE_MAPPING_TAB
 
@@ -83,14 +85,6 @@ class MainMapView(InteractiveMap):
 
         self.route_bottomsheet = MDListBottomSheet()
 
-        for i in range(1, 11):
-            self.route_bottomsheet.add_item(
-                f"Standart Item {i}",
-                lambda x, y=i: self.callback_for_menu_items(
-                    f"Standart Item {y}"
-                ),
-            )
-
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -122,10 +116,73 @@ class MainMapView(InteractiveMap):
 
 
     def request_directions(self):
-        self.route_bottomsheet.open()
-
         if self.pinned_location is not None:
-            self.get_directions(self.current_location, self.pinned_location, "drive")
+            self.get_origin_address()
+
+
+    def get_origin_address(self):
+        self.get_address_by_location(self.current_location, lambda _, result: self.get_destination_address(result))
+
+
+    def get_destination_address(self, result):
+        origin_address = result["address"]
+        origin_address["city_id"] = result["place_id"]
+        self.get_address_by_location(self.pinned_location, lambda _, result: self.get_directions(result, origin_address))
+
+
+    def get_directions(self, result, origin_address):
+        destination_address = result["address"]
+        destination_address["city_id"] = result["place_id"]
+
+        origin_region = origin_address["region"]
+        origin_state = origin_address["state"]
+        origin_city_id = origin_address["city_id"]
+        destination_region = destination_address["region"]
+        destination_state = destination_address["state"]
+        destination_city_id = destination_address["city_id"]
+
+        region = None
+        state = None
+        city_id = None
+
+        if origin_region == destination_region:
+            region = origin_region
+
+            if origin_state == destination_state:
+                state = origin_state
+
+                if origin_city_id == destination_city_id:
+                    city_id = origin_city_id
+
+
+        url = f"{API_URL}/directions"
+
+        origin = self.current_location
+        destination = self.pinned_location
+        
+        body = json.dumps({
+            "origin": [origin.lat, origin.lon],
+            "destination": [destination.lat, destination.lon],
+            "route_area": {
+                "city_id": city_id,
+                "state": state,
+                "region": region,
+            },
+        })
+
+        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=lambda _, result: self.show_viable_routes(result), on_failure=self.handle_connection_error)
+
+
+    def show_viable_routes(self, result):
+        viable_routes = result["routes"]
+
+        for route in viable_routes:
+            self.route_bottomsheet.add_item(
+                text=f"{route['name']}",
+                callback=lambda _, coords=route["coords"]: self.draw_route(coords),
+            )
+        self.route_bottomsheet.open()
+        
 
 
     def get_coordinates_by_address(self, address):
