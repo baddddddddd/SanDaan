@@ -8,4 +8,8 @@ if platform == "android":
 HEADERS = {
     "Content-Type": "application/json"
 }
+
+COMMON = {
+    "id": None
+}
     

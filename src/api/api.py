@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_bcrypt import bcrypt
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
+from mysql.connector.errors import DatabaseError
 
 import json
 import mysql.connector
@@ -24,6 +25,17 @@ db = mysql.connector.connect(
 cursor = db.cursor()
 
 
+# Execute queries by force to handle cases where the database connection timed out
+def execute_query(query, params = tuple(), force=True):
+    if force:
+        try:
+            cursor.execute(query, params)
+        except DatabaseError:
+            execute_query(query, params, True)
+    else:
+        cursor.execute(query, params)
+
+
 @app.route("/register", methods=["POST"])
 def register():
     if request.method == "POST":
@@ -40,7 +52,7 @@ def register():
 
         query = "SELECT * FROM users WHERE username=%s OR email=%s"
         params = (username, email)
-        cursor.execute(query, params)
+        execute_query(query, params)
         result = cursor.fetchone()
 
         if result is not None:
@@ -49,7 +61,7 @@ def register():
 
         query = "INSERT INTO users (username, email, password) VALUES(%s, %s, %s)"
         params = (username, email, hashed_pw)            
-        cursor.execute(query, params)
+        execute_query(query, params)
         db.commit()
 
         return jsonify({
@@ -67,7 +79,7 @@ def login():
 
     query = "SELECT * FROM users WHERE username=%s OR email=%s"
     params = (username, username)
-    cursor.execute(query, params)
+    execute_query(query, params)
     result = cursor.fetchone()
 
     # Check if user exists in the databse
@@ -77,34 +89,14 @@ def login():
     hashed_pw = result[3].encode("ascii")
     if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
         access_token = create_access_token(identity=result[0])
-        return jsonify({"access_token": access_token}), 200
+        id = result[0]
+        return jsonify({
+            "access_token": access_token,
+            "id": id,
+        }), 200
     
     else:
         return jsonify({"message": "Invalid credentials"}), 401
-    
-
-@app.route("/directions", methods=["POST"])
-def get_directions():
-    if request.method == "POST":
-        data = request.get_json()
-
-        origin = data.get("origin", None)
-        destination = data.get("destination", None)
-        mode = data.get("mode", None)
-
-        graph = ox.graph_from_point(tuple(origin), dist=5000, network_type=mode)
-
-        origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
-        destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
-
-        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
-
-        # Convert all the nodes in the computed path to coordinates
-        route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
-
-        return jsonify({
-            "route": route
-        })
         
 
 # Computes the distance between two geological points
@@ -147,7 +139,7 @@ def get_center(points: list):
 @jwt_required()
 def get_route():
     if request.method == "POST":
-        data = request.get_json()
+        data = request.json
 
         pins = data.get("pins", None)
 
@@ -184,42 +176,179 @@ def get_route():
 
         route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
 
-        with open("res.txt", "a") as f:
-            f.write(str(route))
-
         return jsonify({
             "route": route
         })
     
 
-@app.route("/add_route", methods=["POST"])
+def fetch_id_or_insert(table, column, value):
+    query = f"SELECT * FROM {table} WHERE {column}=%s"
+    params = (value,)
+    execute_query(query, params)
+    result = cursor.fetchone()
+
+    if result is not None:
+        id = result[0]
+        return id
+    else:
+        query = f"INSERT INTO {table} ({column}) VALUES (%s)"
+        params = (value,)
+        execute_query(query, params)
+        db.commit()
+        
+        query = "SELECT LAST_INSERT_ID()"
+        execute_query(query)
+        id = cursor.fetchone()[0]
+        return id
+    
+
+@app.route("/contribute", methods=["POST"])
+@jwt_required()
 def add_route():
     if request.method == "POST":
-        data = request.get_json()
-
-        print(data)
+        data = request.json
 
         name = data.get("name", None)
         description = data.get("description", None)
+        start_time = data.get("start_time", None)
+        end_time = data.get("end_time", None)
         coords = data.get("coords", None)
+        uploader_id = data.get("uploader_id", None)
 
-        params = (name, description, json.dumps(coords))
-        query = "INSERT INTO routes (name, description, coords) VALUES (%s, %s, %s)"
-        cursor.execute(query,params)
+        region = data.get("region", None)
+        region_id = fetch_id_or_insert("regions", "name", region)
+
+        state = data.get("state", None)
+        state_id = fetch_id_or_insert("states", "name", state)
+
+        city_id = data.get("city_id", None)
+
+        # Insert route information into routes table
+        query = "INSERT INTO routes (name, description, start_time, end_time, coords, uploader_id) VALUES (%s, %s, %s, %s, %s, %s)"
+        params = (name, description, start_time, end_time, json.dumps(coords), uploader_id)
+        execute_query(query, params)
         db.commit()
 
-        return jsonify({
-            "success": True
-        })
-    
-# Storing routes in a database
-# Routes contain a list of coordinates (lat, lon)
-# Routes must have places specified (ie, Batangas City, Alangilan, Laguna)
-# Routes must have names and descriptions
-# Store routes to databasee in JSON string format
+        # Get the resulting route id
+        query = "SELECT LAST_INSERT_ID()"
+        execute_query(query)
+        route_id = cursor.fetchone()[0]
 
-# Finding a commute route in a database
-# Get shortest path between starting location and target location
-# Convert path to list of Coordinates
-# Get all routes that are in the same location or vicinity of target and starting location
-# Find intersection between the shortest path and the filtered routes from the previous steps
+        # Insert route area into route_areas table
+        query = "INSERT INTO route_areas (region_id, state_id, city_id, route_id) VALUES (%s, %s, %s, %s)"
+        params = (region_id, state_id, city_id, route_id)
+        execute_query(query, params)
+        db.commit() 
+
+        return jsonify({
+            "message": "Uploaded route successfully."
+        }), 200
+
+@app.route("/directions", methods=["POST"])
+@jwt_required()
+def get_directions():
+    if request.method == "POST":
+        data = request.json
+
+        origin = data.get("origin", None)
+        destination = data.get("destination", None)
+        route_area = data.get("route_area", None)
+
+        region = route_area.get("region", None)
+        region_id = fetch_id_or_insert("regions", "name", region) if region is not None else None
+        
+        state = route_area.get("state", None)
+        state_id = fetch_id_or_insert("states", "name", state) if state is not None else None
+        
+        city_id = route_area.get("city_id", None)
+
+        route_area_ids = {
+            "city_id": city_id,
+            "state_id": state_id,
+            "region_id": region_id,
+        }
+
+        condition = ""
+        for column, value in route_area_ids.items():
+            if value is not None:
+                condition = f" WHERE route_areas.{column}={value}"
+                break
+
+        columns = ", ".join([
+            "routes.id",
+            "routes.name",
+            "routes.description",
+            "routes.start_time",
+            "routes.end_time",
+            "routes.coords",
+            "routes.connections",
+            "routes.uploader_id",
+        ])
+
+        query = f"SELECT {columns} FROM route_areas INNER JOIN routes ON route_areas.route_id = routes.id" + condition
+        execute_query(query)
+        results = cursor.fetchall()
+
+        candidate_routes = []
+        for res in results:
+            route = {
+                "id": res[0],
+                "name": res[1],
+                "description": res[2],
+                "start_time": str(res[3]),
+                "end_time": str(res[4]),
+                "coords": json.loads(res[5]),
+                "connections": res[6],
+                "uploader_id": res[7],
+            }
+            candidate_routes.append(route)
+        
+        center = get_center([origin, destination])
+        radius = (get_distance(origin, destination) * 1100) // 2
+
+        graph = ox.graph_from_point(center, dist=radius, network_type="drive")
+
+        origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
+        destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
+
+        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+
+        shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
+
+        # Determine which routes will get the user from their current location to the target location
+
+        viable_routes = []
+        all_route = []
+        for route in candidate_routes:
+            all_route += route["coords"]
+
+
+        first_stop = None
+        for i, node in enumerate(shortest_route):
+            if node in all_route:
+                first_stop = node
+                break
+
+        last_stop = None
+        for i, node in reversed(list(enumerate(shortest_route))):
+            if node in all_route:
+                last_stop = node
+                break
+
+        for idx, route in enumerate(candidate_routes):
+            found_first_stop = False
+
+            for i, node in enumerate(route["coords"]):
+                if not found_first_stop and node == first_stop:
+                    found_first_stop = True
+
+                if node == last_stop:
+                    if not found_first_stop:
+                        break
+
+                    viable_routes.append(candidate_routes[idx])
+                    break
+
+        return jsonify({
+            "routes": viable_routes
+        })
