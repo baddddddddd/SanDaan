@@ -365,3 +365,6 @@ def get_directions():
         return jsonify({
             "routes": viable_routes
         })
+
+if __name__ == "__main__":
+    app.run()
