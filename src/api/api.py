@@ -45,7 +45,11 @@ def register():
         username = json.get("username", None)
         password = json.get("password", None)
     
-        # If one of these tthree is None return invalid
+        # Return 400 Bad Request if one of these three is None
+        if email is None or username is None or password is None:
+            return jsonify({
+                "message": "One of the required fields is missing",
+            }), 400
         
         salt = bcrypt.gensalt()
         hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -56,8 +60,9 @@ def register():
         result = cursor.fetchone()
 
         if result is not None:
-            # If username is already taken or email is already taken, return invalid
-            return
+            return jsonify({
+                "message": "Username or email is already taken",
+            }), 401
 
         query = "INSERT INTO users (username, email, password) VALUES(%s, %s, %s)"
         params = (username, email, hashed_pw)            
@@ -65,7 +70,7 @@ def register():
         db.commit()
 
         return jsonify({
-            "success": True
+            "message": "Successfully created account",
         }), 200
         
 
@@ -75,7 +80,11 @@ def login():
     username = json.get("username", None)
     password = json.get("password", None)
 
-    # if any of these two is None, return invalid
+    # Return 400 Bad Request if one of these three is None
+    if username is None or password is None:
+        return jsonify({
+            "message": "One of the required fields is missing",
+        }), 400
 
     query = "SELECT * FROM users WHERE username=%s OR email=%s"
     params = (username, username)
@@ -84,7 +93,9 @@ def login():
 
     # Check if user exists in the databse
     if result is None:
-        return jsonify({"message": "User not found"}), 404
+        return jsonify({
+            "message": "Username or email is incorrect",
+        }), 401
 
     hashed_pw = result[3].encode("ascii")
     if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
@@ -96,7 +107,9 @@ def login():
         }), 200
     
     else:
-        return jsonify({"message": "Invalid credentials"}), 401
+        return jsonify({
+            "message": "Username or email is incorrect",
+        }), 401
         
 
 # Computes the distance between two geological points
