@@ -11,6 +11,7 @@ import json
 
 from common import API_URL, HEADERS, COMMON
 from interactive_map import InteractiveMap
+from search_view import LocationSearchBar, SearchView
 
 
 ROUTE_MAPPING_TAB = '''
@@ -30,16 +31,23 @@ MDBottomNavigationItem:
 
     FloatLayout:
         RouteMapping:
-            id: map_routing
+            id: map
             lat: 13.78530
             lon: 121.07339
             zoom: 15
+
+        LocationSearchBar:
+            map: map
+            search_view: search_view
+
+        SearchView:
+            id: search_view
 
         MDFloatingActionButton:
             icon: "check-bold"
             pos_hint: {"center_x": 0.875, "center_y": 0.125}
             on_release:
-                map_routing.confirm_route()
+                map.confirm_route()
         
 '''
 

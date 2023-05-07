@@ -6,7 +6,7 @@ from kivymd.app import MDApp
 import json
 
 from common import API_URL, HEADERS, COMMON
-from main_mapview import MAPVIEW_SCREEN
+from route_finding import MAPVIEW_SCREEN
 
 
 WELCOME_SCREEN = '''

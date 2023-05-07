@@ -84,6 +84,25 @@ class InteractiveMap(MapView):
             self.graphed_route = []
 
 
+    def search_location(self, query: str, on_success_callback):
+        url = "https://nominatim.openstreetmap.org/search?"
+
+        params = {
+            "q": query,
+            "limit": 10,
+            "format": "json",
+            "addressdetails": 1,
+        }
+
+        url_params = parse.urlencode(params)
+        url += url_params
+
+        # Use a unique user agent
+        headers = {'User-Agent': 'SanDaan/1.0'}
+
+        UrlRequest(url, req_headers=headers, on_success=on_success_callback)
+
+
     def get_address_by_location(self, coord: Coordinate, on_success_callback, zoom = 10):
         url = "https://nominatim.openstreetmap.org/reverse?"
 

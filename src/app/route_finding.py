@@ -10,6 +10,7 @@ import json
 from common import API_URL, HEADERS
 from interactive_map import InteractiveMap
 from route_mapping import ROUTE_MAPPING_TAB
+from search_view import LocationSearchBar, SearchView
 
 
 MAPVIEW_SCREEN = '''
@@ -35,20 +36,18 @@ MDBottomNavigationItem:
     icon: "routes"
 
     FloatLayout:
-        MainMapView:
+        RouteFinding:
             id: map
             lat: 13.78530
             lon: 121.07339
             zoom: 15
 
-        MDTextField:
-            id: search_location
-            hint_text: "Search location"
-            mode: "round"
-            size_hint_x: 0.9
-            pos_hint: {"center_x": 0.5, "top": 0.98}
-            on_text_validate: 
-                map.get_coordinates_by_address(search_location.text)
+        LocationSearchBar:
+            map: map
+            search_view: search_view
+
+        SearchView:
+            id: search_view
 
         MDFloatingActionButton:
             icon: "crosshairs-gps"
@@ -76,7 +75,7 @@ class NavBar(MDBottomNavigation):
         self.add_widget(Builder.load_string(ROUTE_MAPPING_TAB))
 
 
-class MainMapView(InteractiveMap):
+class RouteFinding(InteractiveMap):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -182,38 +181,9 @@ class MainMapView(InteractiveMap):
                 callback=lambda _, coords=route["coords"]: self.draw_route(coords),
             )
         self.route_bottomsheet.open()
-        
-
-
-    def get_coordinates_by_address(self, address):
-        address = parse.quote(address)
-
-        # Use a unique user agent
-        headers = {'User-Agent': 'SanDaan/1.0'}
-
-        # Used Nominatim for easier Geocoding instead of OSM API because it doesn't have geocoding and reverse geocoding
-        url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=1'
-        UrlRequest(url, on_success=self.success, on_failure=self.failure, on_error=self.error, req_headers=headers)
 
 
     def handle_connection_error(self, urlrequest, result):
         print(urlrequest)
         print(result)
         print("Connection Error")
-
-
-    def success(self, urlrequest, result):
-        latitude = float(result[0]['lat'])
-        longitude = float(result[0]['lon'])
-        self.centralize_map_on(Coordinate(latitude, longitude))
-        self.zoom = 15
-
-
-    def failure(self, urlrequest, result):
-        print("Failed")
-        print(result)
-
-
-    def error(self, urlrequest, result):
-        print("Error")
-        print(result)
