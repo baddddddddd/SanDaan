@@ -45,9 +45,21 @@ MDBottomNavigationItem:
 
         MDFloatingActionButton:
             icon: "check-bold"
-            pos_hint: {"center_x": 0.875, "center_y": 0.125}
+            pos_hint: {"center_x": 0.875, "center_y": 0.32}
             on_release:
                 map.confirm_route()
+
+        MDFloatingActionButton:
+            icon: "crosshairs-gps"
+            pos_hint: {"center_x": 0.875, "center_y": 0.21}
+            on_release:
+                map.follow_user()
+
+        MDFloatingActionButton:
+            icon: "help"
+            pos_hint: {"center_x": 0.875, "center_y": 0.10}
+            on_release:
+                map.help_dialog.open()
         
 '''
 
@@ -145,7 +157,7 @@ class RouteMapping(InteractiveMap):
         self.graph_line = None
         self.waiting_for_route = False
         self.route_information = RouteInformation()
-        self.dialog = MDDialog(
+        self.confirmation_dialog = MDDialog(
             title="Route Information",
             type="custom",
             content_cls=self.route_information,
@@ -166,10 +178,21 @@ class RouteMapping(InteractiveMap):
 
         self.route_addresses = []
     
+        self.help_dialog = MDDialog(
+            title="Route Mapping Manual",
+            type="custom",
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=lambda _: self.help_dialog.dismiss(),
+                ),
+            ],
+        )
 
     def update_dialog_height(self, *args):
-        new_height = sum([children.height for children in self.dialog.content_cls.children])
-        self.dialog.update_height(new_height)
+        new_height = sum([children.height for children in self.confirmation_dialog.content_cls.children])
+        self.confirmation_dialog.update_height(new_height)
         
 
     def on_touch_down(self, touch):
@@ -244,11 +267,11 @@ class RouteMapping(InteractiveMap):
 
 
     def confirm_route(self):
-        self.dialog.open()
+        self.confirmation_dialog.open()
 
 
     def cancel_confirmation(self, *args):
-        self.dialog.dismiss()
+        self.confirmation_dialog.dismiss()
 
 
     def get_route_address(self, index):
@@ -281,7 +304,7 @@ class RouteMapping(InteractiveMap):
 
     def upload_route(self, *args):
         # Get all the data from the dialog
-        route_info = self.dialog.content_cls
+        route_info = self.confirmation_dialog.content_cls
 
         name = route_info.name_field.text
         desc = route_info.desc_field.text

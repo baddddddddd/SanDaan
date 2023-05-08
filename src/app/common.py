@@ -1,9 +1,8 @@
 from kivy.utils import platform
 
-API_URL = "http://127.0.0.1:5000"
-
-if platform == "android":
-    API_URL = "http://192.168.1.42:5000"
+LOCALHOST = "http://127.0.0.1:5000"
+RENDER = "https://sandaan-api.onrender.com"
+API_URL = RENDER if platform == "android" else LOCALHOST
 
 HEADERS = {
     "Content-Type": "application/json"

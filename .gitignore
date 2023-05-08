@@ -1,6 +1,7 @@
 .buildozer
 bin
 cache
+cache.json
 log.txt
 test.py
 

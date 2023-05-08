@@ -1,6 +1,8 @@
+from kivy.clock import Clock
 from kivy.core.text import LabelBase
 from kivy.lang import Builder
 from kivy.network.urlrequest import UrlRequest
+from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 import json
@@ -261,8 +263,25 @@ class MainApp(MDApp):
         self.signup_warning = None
         #self.screen_manager.current = "mapview"
 
+        self.cache = JsonStore("cache.json")
+        Clock.schedule_once(lambda _: self.get_cache())
+
         return self.screen_manager
     
+    
+    def get_cache(self):
+        if self.cache.exists("authorization"):
+            access_token = self.cache.get("authorization").get("access_token", None)
+            id = self.cache.get("authorization").get("id", None)
+
+            # Check if token is still valid and user id still exists
+
+            result = {
+                "access_token": access_token,
+                "id": id,
+            }
+
+            self.show_main_screen(result)
 
     def create_account(self, username, email, password, confirm_password):
         # Check if any of the fields is empty
@@ -370,11 +389,22 @@ class MainApp(MDApp):
 
 
     def show_main_screen(self, result):
-        self.login_loading.stop()
+        if self.login_loading is not None:
+            self.login_loading.stop()
+
+        access_token = result.get("access_token")
+        id = result.get("id")
+
+        # Save authorization details to cache
+        self.cache.put(
+            key="authorization",
+            access_token=access_token,
+            id=id,
+        )
 
         # Set authorization header and save user id
-        HEADERS["Authorization"] = f"Bearer {result['access_token']}"
-        COMMON["id"] = result["id"]
+        HEADERS["Authorization"] = f"Bearer {access_token}"
+        COMMON["id"] = id
 
         # Change the current screen to the mapview screen
         self.screen_manager.transition.direction = "left"
