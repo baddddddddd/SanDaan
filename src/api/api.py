@@ -10,6 +10,8 @@ import osmnx as ox
 import networkx as nx
 import math
 
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -368,3 +370,4 @@ def get_directions():
 
 if __name__ == "__main__":
     app.run()
+    

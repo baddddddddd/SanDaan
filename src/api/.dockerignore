@@ -1,0 +1,7 @@
+# Virtualenv folders
+.venv/
+venv/
+
+# Cache folders
+__pycache__/
+cache/
