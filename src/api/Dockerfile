@@ -14,5 +14,5 @@ ENV FLASK_APP=api
 
 EXPOSE 5000
 
-CMD ["gunicorn", "api:app"]
+CMD ["gunicorn", "api:app", "--log-level", "debug"]
     
