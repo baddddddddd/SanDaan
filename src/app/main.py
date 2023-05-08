@@ -4,6 +4,7 @@ from kivy.network.urlrequest import UrlRequest
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 import json
+import re
 
 from common import API_URL, HEADERS, COMMON
 from route_finding import MAPVIEW_SCREEN
@@ -14,7 +15,6 @@ MDScreen:
     name: "welcome"
     
     MDFloatLayout:
-
         MDFillRoundFlatButton:
             text: "LOG IN"
             pos_hint: {"center_x": .5, "center_y": .20}
@@ -43,6 +43,12 @@ MDScreen:
     name: "login"
 
     MDFloatLayout:
+        MDProgressBar:
+            id: loading
+            type: "indeterminate"
+            pos_hint: {"top": 1}
+            back_color: 1, 1, 1, 0
+
         MDIconButton:
             icon: "arrow-left"
             pos_hint: {"center_y": .95}
@@ -74,6 +80,12 @@ MDScreen:
             padding: [24, 14, 24, 14]
             pos_hint: {"center_x": .5, "center_y": .64}
             font_size: 16
+            on_focus:
+                self.required = True
+            on_text_validate:
+                if self.text != "": password.focus = True
+            on_text:
+                warning.text = ""
 
         MDTextField:
             id: password
@@ -84,6 +96,10 @@ MDScreen:
             padding: [24, 14, 24, 14]
             pos_hint: {"center_x": .5, "center_y": .52}
             font_size: 16
+            on_focus:
+                self.required = True
+            on_text:
+                warning.text = ""
 
         MDFillRoundFlatButton:
             text: "LOG IN"
@@ -92,7 +108,17 @@ MDScreen:
             padding: [24, 14, 24, 14]
             font_name: "BPoppins"
             on_release:
-                app.verify_login(email.text, password.text)
+                app.login_loading = loading
+                app.login_warning = warning
+                app.verify_login(email, password)
+
+        MDLabel:
+            id: warning
+            text: ""
+            font_name: "MPoppins"
+            font_size: "12sp"
+            pos_hint: {"center_x": 0.6, "center_y": .46}
+            color: "#FF0000"
 '''
 
 SIGNUP_SCREEN = '''
@@ -100,6 +126,12 @@ MDScreen:
     name: "signup"
 
     MDFloatLayout:
+        MDProgressBar:
+            id: loading
+            type: "indeterminate"
+            pos_hint: {"top": 1}
+            back_color: 1, 1, 1, 0
+
         MDIconButton:
             icon: "arrow-left"
             pos_hint: {"center_y": .95}
@@ -130,6 +162,12 @@ MDScreen:
             padding: [24, 14, 24, 14]
             pos_hint: {"center_x": .5, "center_y": .7}
             font_size: 16
+            on_focus:
+                self.required = True
+            on_text:
+                warning.text = ""
+            on_text_validate:
+                email.focus = True
 
         MDTextField:
             id: email
@@ -140,6 +178,12 @@ MDScreen:
             padding: [24, 14, 24, 14]
             pos_hint: {"center_x": .5, "center_y": .6}
             font_size: 16
+            on_focus:
+                self.required = True
+            on_text:
+                warning.text = ""
+            on_text_validate:
+                password.focus = True
 
         MDTextField:
             id: password
@@ -150,6 +194,12 @@ MDScreen:
             padding: [24, 14, 24, 14]
             pos_hint: {"center_x": .5, "center_y": .5}
             font_size: 16
+            on_focus:
+                self.required = True
+            on_text:
+                warning.text = ""
+            on_text_validate:
+                confirm_password.focus = True
 
         MDTextField:
             id: confirm_password
@@ -160,6 +210,18 @@ MDScreen:
             padding: [24, 14, 24, 14]
             pos_hint: {"center_x": .5, "center_y": .4}
             font_size: 16
+            on_focus:
+                self.required = True
+            on_text:
+                warning.text = ""
+
+        MDLabel:
+            id: warning
+            text: ""
+            font_name: "MPoppins"
+            font_size: "12sp"
+            pos_hint: {"center_x": 0.6, "center_y": .35}
+            color: "#FF0000"
 
         MDFillRoundFlatButton:
             text: "SIGN UP"
@@ -168,8 +230,9 @@ MDScreen:
             padding: [24, 14, 24, 14]
             font_name: "BPoppins"
             on_release:
-                app.create_account(username.text, email.text, password.text, confirm_password.text)
-                
+                app.signup_loading = loading
+                app.signup_warning = warning
+                app.create_account(username, email, password, confirm_password)
 '''
 
 # Finding jeepney routes algorithm
@@ -192,45 +255,139 @@ class MainApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
 
+        self.login_loading = None
+        self.signup_loading = None
+        self.login_warning = None
+        self.signup_warning = None
         #self.screen_manager.current = "mapview"
 
         return self.screen_manager
     
 
-    def create_account(self, username: str, email: str, password: str, confirm_password: str):
-        if password != confirm_password:
-            # Show error message the password repeat is wrong
+    def create_account(self, username, email, password, confirm_password):
+        # Check if any of the fields is empty
+        fields = [username, email, password, confirm_password]
+        for field in fields:
+            if field.text == "":
+                field.focus = True
+                return
+        
+        # Check if input username is a valid username
+        if len(username.text) < 3:
+            self.signup_warning.text = "Username must have at least 3 characters"
             return
         
+        if not username.text.isalnum():
+            self.signup_warning.text = "Username must not contain symbols and spaces"
+            return
+        
+        # Check if input email is a valid email
+        email_pattern = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
+        if not re.match(email_pattern, email.text):
+            self.signup_warning.text = "Email is not a valid email address"
+            return
+        
+        # Check if input password is a valid password
+        if len(password.text) < 8:
+            self.signup_warning.text = "Password must have at least 8 characters"
+            return
+        
+        if not password.text.isascii():
+            self.signup_warning.text = "Password contains invalid characters"
+            return
+        
+        # Show warning message when passwords do not match
+        if password.text != confirm_password.text:
+            self.signup_warning.text = "Passwords do not match"
+            return
+        
+        # Show loading indicator when creating the account in the server
+        self.signup_loading.start()
+        
+        # Create the account through the API
         url = f"{API_URL}/register"
         
         body = json.dumps({
-            "username": username,
-            "email": email,
-            "password": password,
+            "username": username.text,
+            "email": email.text,
+            "password": password.text,
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_main_screen)
+        UrlRequest(
+            url=url, 
+            req_headers=HEADERS, 
+            req_body=body, 
+            on_success=lambda _, result: self.proceed_to_login(),
+            on_failure=lambda _, result: self.show_signup_error(result),
+        )
 
 
-    def verify_login(self, username: str, password: str):
+    def proceed_to_login(self):
+        self.signup_loading.stop()
+
+        # Change the current screen to the login screen
+        self.screen_manager.transition.direction = "left"
+        self.screen_manager.transition.duration = 0.3
+        self.screen_manager.current = "login"
+
+
+    def show_signup_error(self, result):
+        self.signup_loading.stop()
+
+        # Give the user an idea what went wrong
+        error_message = result.get("message", None)
+        self.signup_warning.text = error_message if error_message is not None else "Something went wrong"
+
+
+    def verify_login(self, username, password):
+        # Validate input before sending to API
+        if username.text == "":
+            username.focus = True
+            return
+
+        if password.text == "":
+            password.focus = True
+            return
+
+        # Show loading indicator while verifying login credentials in the server
+        self.login_loading.start()
+
+        # Verify login credentials through the API
         url = f"{API_URL}/login"
         
         body = json.dumps({
-            "username": username,
-            "password": password,
+            "username": username.text,
+            "password": password.text,
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_main_screen)
+        UrlRequest(
+            url=url, 
+            req_headers=HEADERS, 
+            req_body=body, 
+            on_success=lambda _, result: self.show_main_screen(result),
+            on_failure=lambda _, result: self.show_login_error(result),
+        )
 
 
-    def show_main_screen(self, urlrequest, result):
+    def show_main_screen(self, result):
+        self.login_loading.stop()
+
+        # Set authorization header and save user id
         HEADERS["Authorization"] = f"Bearer {result['access_token']}"
         COMMON["id"] = result["id"]
 
+        # Change the current screen to the mapview screen
         self.screen_manager.transition.direction = "left"
         self.screen_manager.transition.duration = 0.3
         self.screen_manager.current = "mapview"
+
+
+    def show_login_error(self, result):
+        self.login_loading.stop()
+
+        # Give the user an idea what went wrong
+        error_message = result.get("message", None)
+        self.login_warning.text = error_message if error_message is not None else "Something went wrong"
 
 
 if __name__ == "__main__":
