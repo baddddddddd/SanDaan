@@ -1,12 +1,12 @@
 from kivy.clock import Clock
 from kivy.lang.builder import Builder
-from kivy.network.urlrequest import UrlRequest
+from kivy.properties import ObjectProperty
 from kivy_garden.mapview import MapMarker, Coordinate
-from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
+from kivymd.uix.bottomnavigation import MDBottomNavigation
 from kivymd.uix.bottomsheet import MDListBottomSheet
 import json
 
-from common import API_URL, HEADERS
+from common import API_URL, SendRequest, TopScreenLoadingBar
 from interactive_map import InteractiveMap
 from route_mapping import ROUTE_MAPPING_TAB
 from search_view import SearchBar
@@ -34,12 +34,16 @@ MDBottomNavigationItem:
     text: "Routes"
     icon: "routes"
 
-    FloatLayout:
+    MDFloatLayout:
         RouteFinding:
             id: map
             lat: 13.78530
             lon: 121.07339
             zoom: 15
+            loading_bar: loading
+
+        TopScreenLoadingBar:
+            id: loading
 
         SearchBar:
             map: map
@@ -164,7 +168,13 @@ class RouteFinding(InteractiveMap):
             },
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=lambda _, result: self.show_viable_routes(result), on_failure=self.handle_connection_error)
+        SendRequest(
+            url=url,
+            body=body,
+            on_success=lambda _, result: self.show_viable_routes(result), 
+            on_failure=self.handle_connection_error,
+            loading_indicator=self.loading_bar,
+        )
 
 
     def show_viable_routes(self, result):

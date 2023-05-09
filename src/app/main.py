@@ -1,14 +1,13 @@
 from kivy.clock import Clock
 from kivy.core.text import LabelBase
 from kivy.lang import Builder
-from kivy.network.urlrequest import UrlRequest
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 import json
 import re
 
-from common import API_URL, HEADERS, COMMON
+from common import SendRequest, TopScreenLoadingBar, API_URL, HEADERS, COMMON
 from route_finding import MAPVIEW_SCREEN
 
 
@@ -17,6 +16,11 @@ MDScreen:
     name: "welcome"
     
     MDFloatLayout:
+        TopScreenLoadingBar:
+            id: loading
+            on_parent:
+                app.cache_loading = loading
+
         MDFillRoundFlatButton:
             text: "LOG IN"
             pos_hint: {"center_x": .5, "center_y": .20}
@@ -45,11 +49,8 @@ MDScreen:
     name: "login"
 
     MDFloatLayout:
-        MDProgressBar:
+        TopScreenLoadingBar:
             id: loading
-            type: "indeterminate"
-            pos_hint: {"top": 1}
-            back_color: 1, 1, 1, 0
 
         MDIconButton:
             icon: "arrow-left"
@@ -128,11 +129,8 @@ MDScreen:
     name: "signup"
 
     MDFloatLayout:
-        MDProgressBar:
+        TopScreenLoadingBar:
             id: loading
-            type: "indeterminate"
-            pos_hint: {"top": 1}
-            back_color: 1, 1, 1, 0
 
         MDIconButton:
             icon: "arrow-left"
@@ -251,17 +249,17 @@ class MainApp(MDApp):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Cyan"
         
+        self.login_loading = None
+        self.signup_loading = None
+        self.login_warning = None
+        self.signup_warning = None
+        self.cache_loading = None
+
         self.screen_manager = ScreenManager()
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
-
-        self.login_loading = None
-        self.signup_loading = None
-        self.login_warning = None
-        self.signup_warning = None
-        #self.screen_manager.current = "mapview"
 
         self.cache = JsonStore("cache.json")
         Clock.schedule_once(lambda _: self.get_cache())
@@ -275,13 +273,24 @@ class MainApp(MDApp):
             id = self.cache.get("authorization").get("id", None)
 
             # Check if token is still valid and user id still exists
+            url = f"{API_URL}/verify"
+            HEADERS["Authorization"] = f"Bearer {access_token}"
+            
+            SendRequest(
+                url=url,
+                on_success=lambda _, result, access_token=access_token, id=id: self.skip_login(access_token, id),
+                loading_indicator=self.cache_loading,
+            )
 
-            result = {
+
+    def skip_login(self, access_token, id):
+        result = {
                 "access_token": access_token,
                 "id": id,
             }
 
-            self.show_main_screen(result)
+        self.show_main_screen(result)
+
 
     def create_account(self, username, email, password, confirm_password):
         # Check if any of the fields is empty
@@ -320,9 +329,6 @@ class MainApp(MDApp):
             self.signup_warning.text = "Passwords do not match"
             return
         
-        # Show loading indicator when creating the account in the server
-        self.signup_loading.start()
-        
         # Create the account through the API
         url = f"{API_URL}/register"
         
@@ -332,18 +338,16 @@ class MainApp(MDApp):
             "password": password.text,
         })
 
-        UrlRequest(
-            url=url, 
-            req_headers=HEADERS, 
-            req_body=body, 
+        SendRequest(
+            url=url,
+            body=body,
             on_success=lambda _, result: self.proceed_to_login(),
             on_failure=lambda _, result: self.show_signup_error(result),
+            loading_indicator=self.signup_loading,
         )
 
 
     def proceed_to_login(self):
-        self.signup_loading.stop()
-
         # Change the current screen to the login screen
         self.screen_manager.transition.direction = "left"
         self.screen_manager.transition.duration = 0.3
@@ -351,10 +355,8 @@ class MainApp(MDApp):
 
 
     def show_signup_error(self, result):
-        self.signup_loading.stop()
-
         # Give the user an idea what went wrong
-        error_message = result.get("message", None)
+        error_message = result.get("msg", None)
         self.signup_warning.text = error_message if error_message is not None else "Something went wrong"
 
 
@@ -368,9 +370,6 @@ class MainApp(MDApp):
             password.focus = True
             return
 
-        # Show loading indicator while verifying login credentials in the server
-        self.login_loading.start()
-
         # Verify login credentials through the API
         url = f"{API_URL}/login"
         
@@ -379,19 +378,16 @@ class MainApp(MDApp):
             "password": password.text,
         })
 
-        UrlRequest(
-            url=url, 
-            req_headers=HEADERS, 
-            req_body=body, 
+        SendRequest(
+            url=url,
+            body=body,
             on_success=lambda _, result: self.show_main_screen(result),
             on_failure=lambda _, result: self.show_login_error(result),
+            loading_indicator=self.login_loading,
         )
 
 
     def show_main_screen(self, result):
-        if self.login_loading is not None:
-            self.login_loading.stop()
-
         access_token = result.get("access_token")
         id = result.get("id")
 
@@ -406,6 +402,9 @@ class MainApp(MDApp):
         HEADERS["Authorization"] = f"Bearer {access_token}"
         COMMON["id"] = id
 
+        with open("res.txt", "+a") as f:
+            f.write(str(HEADERS) + "\n")
+
         # Change the current screen to the mapview screen
         self.screen_manager.transition.direction = "left"
         self.screen_manager.transition.duration = 0.3
@@ -413,10 +412,8 @@ class MainApp(MDApp):
 
 
     def show_login_error(self, result):
-        self.login_loading.stop()
-
         # Give the user an idea what went wrong
-        error_message = result.get("message", None)
+        error_message = result.get("msg", None)
         self.login_warning.text = error_message if error_message is not None else "Something went wrong"
 
 

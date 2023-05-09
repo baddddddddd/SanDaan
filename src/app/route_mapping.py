@@ -1,5 +1,5 @@
 from kivy.clock import Clock
-from kivy.network.urlrequest import UrlRequest
+from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
@@ -9,7 +9,7 @@ from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
 import json
 
-from common import API_URL, HEADERS, COMMON
+from common import API_URL, HEADERS, COMMON, SendRequest, TopScreenLoadingBar
 from interactive_map import InteractiveMap
 from search_view import SearchBar
 
@@ -35,6 +35,10 @@ MDBottomNavigationItem:
             lat: 13.78530
             lon: 121.07339
             zoom: 15
+            loading_bar: loading
+
+        TopScreenLoadingBar:
+            id: loading
 
         SearchBar:
             map: map
@@ -107,11 +111,6 @@ class RouteInformation(BoxLayout):
 
 
 class RouteMapping(InteractiveMap):
-    # Button to confirm route and upload
-        # Upon pressing, user will be asked to name the route and add description (additional info)
-        # User will also be asked of the time range that the route is available
-        # User will also be asked of the vicinity of the route (Brgy, City, Province, Region) for database design purposes
-
     class RoutePin(MapMarkerPopup):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
@@ -228,12 +227,17 @@ class RouteMapping(InteractiveMap):
             "pins": pin_coords,
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.connect_route)
+        SendRequest(
+            url=url,
+            body=body,
+            loading_indicator=self.loading_bar,
+            on_success=lambda _, result: self.connect_route(result),
+        )
 
         self.waiting_for_route = True
 
 
-    def connect_route(self, urlrequest, result):  
+    def connect_route(self, result):  
         if len(self.pins) == 2:
             self.graphed_route += result["route"]
             self.draw_route(self.graphed_route)
@@ -252,13 +256,18 @@ class RouteMapping(InteractiveMap):
             "pins": pin_coords,
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.redraw_all)
+        SendRequest(
+            url=url,
+            body=body,
+            loading_indicator=self.loading_bar,
+            on_success=lambda _, result: self.redraw_all(result),
+        )
         
         self.waiting_for_route = True
 
 
-    def redraw_all(self, urlrequest, result):
-        self.draw_directions(urlrequest, result)
+    def redraw_all(self, result):
+        self.draw_directions(result)
         self.waiting_for_route = False
 
 
@@ -346,9 +355,14 @@ class RouteMapping(InteractiveMap):
             "uploader_id": COMMON["id"],
         })
 
-        UrlRequest(url=url, req_headers=HEADERS, req_body=body, on_success=self.show_upload_success)
+        SendRequest(
+            url=url,
+            body=body,
+            loading_indicator=self.loading_bar,
+            on_success=lambda _, result: self.show_upload_success(result),
+        )
 
 
-    def show_upload_success(self, urlrequest, result):
+    def show_upload_success(self, result):
         # Show dialog that the upload is success
         print(result)

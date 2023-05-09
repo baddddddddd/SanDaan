@@ -1,15 +1,17 @@
 from kivy.graphics import Line, Color
-from kivy.network.urlrequest import UrlRequest
+from kivy.properties import ObjectProperty
 from kivy.utils import platform
 from kivy_garden.mapview import MapView, MapMarker, Coordinate
 from plyer import gps
 from urllib import parse
 import json
 
-from common import API_URL, HEADERS
+from common import API_URL, HEADERS, SendRequest
 
 
 class InteractiveMap(MapView):
+    loading_bar = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -98,9 +100,14 @@ class InteractiveMap(MapView):
         url += url_params
 
         # Use a unique user agent
-        headers = {'User-Agent': 'SanDaan/1.0'}
+        headers = {'User-Agent': 'SanDaan2/1.0'}
 
-        UrlRequest(url, req_headers=headers, on_success=on_success_callback)
+        SendRequest(
+            url=url, 
+            headers=headers,
+            loading_indicator=self.loading_bar,
+            on_success=on_success_callback,
+        )
 
 
     def get_address_by_location(self, coord: Coordinate, on_success_callback, zoom = 10):
@@ -120,10 +127,15 @@ class InteractiveMap(MapView):
         # Use a unique user agent
         headers = {'User-Agent': 'SanDaan/1.0'}
 
-        UrlRequest(url=url, req_headers=headers, on_success=on_success_callback)
+        SendRequest(
+            url=url,
+            headers=headers,
+            loading_indicator=self.loading_bar,
+            on_success=on_success_callback,
+        )
 
 
-    def draw_directions(self, urlrequest, result):
+    def draw_directions(self, result):
         route = result["route"]
         self.graphed_route = route
 

@@ -4,17 +4,18 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from mysql.connector.errors import DatabaseError
 
 import json
+import math
 import mysql.connector
 import os
+
 import osmnx as ox
 import networkx as nx
-import math
 
 from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.getenv("SECRET_KEY")
 jwt = JWTManager(app)
 
 db = mysql.connector.connect(
@@ -38,6 +39,15 @@ def execute_query(query, params = tuple(), force=True):
         cursor.execute(query, params)
 
 
+@app.route("/verify", methods=["GET"])
+@jwt_required()
+def verify_token():
+    if request.method == "GET":
+        return jsonify({
+            "msg": "Token is currently valid"
+        })
+    
+
 @app.route("/register", methods=["POST"])
 def register():
     if request.method == "POST":
@@ -50,7 +60,7 @@ def register():
         # Return 400 Bad Request if one of these three is None
         if email is None or username is None or password is None:
             return jsonify({
-                "message": "One of the required fields is missing",
+                "msg": "One of the required fields is missing",
             }), 400
         
         salt = bcrypt.gensalt()
@@ -63,7 +73,7 @@ def register():
 
         if result is not None:
             return jsonify({
-                "message": "Username or email is already taken",
+                "msg": "Username or email is already taken",
             }), 401
 
         query = "INSERT INTO users (username, email, password) VALUES(%s, %s, %s)"
@@ -72,7 +82,7 @@ def register():
         db.commit()
 
         return jsonify({
-            "message": "Successfully created account",
+            "msg": "Successfully created account",
         }), 200
         
 
@@ -85,7 +95,7 @@ def login():
     # Return 400 Bad Request if one of these three is None
     if username is None or password is None:
         return jsonify({
-            "message": "One of the required fields is missing",
+            "msg": "One of the required fields is missing",
         }), 400
 
     query = "SELECT * FROM users WHERE username=%s OR email=%s"
@@ -96,7 +106,7 @@ def login():
     # Check if user exists in the databse
     if result is None:
         return jsonify({
-            "message": "Username or email is incorrect",
+            "msg": "Username or email is incorrect",
         }), 401
 
     hashed_pw = result[3].encode("ascii")
@@ -110,7 +120,7 @@ def login():
     
     else:
         return jsonify({
-            "message": "Username or email is incorrect",
+            "msg": "Username or email is incorrect",
         }), 401
         
 
@@ -256,7 +266,7 @@ def add_route():
         db.commit() 
 
         return jsonify({
-            "message": "Uploaded route successfully."
+            "msg": "Uploaded route successfully."
         }), 200
 
 @app.route("/directions", methods=["POST"])
