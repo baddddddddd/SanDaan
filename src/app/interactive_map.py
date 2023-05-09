@@ -4,7 +4,6 @@ from kivy.utils import platform
 from kivy_garden.mapview import MapView, MapMarker, Coordinate
 from plyer import gps
 from urllib import parse
-import json
 
 from common import API_URL, HEADERS, SendRequest
 
@@ -153,4 +152,3 @@ class InteractiveMap(MapView):
             # Equivalent of rgba(29, 53, 87), which is the primary color of the palette used for UI
             Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
             self.graph_line = Line(points=points, width=3, cap="round", joint="round")
-
