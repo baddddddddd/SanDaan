@@ -39,7 +39,7 @@ class SendRequest():
 
         UrlRequest(
             url=url,
-            req_headers=HEADERS if headers is None else None,
+            req_headers=HEADERS if headers is None else headers,
             req_body=body,
             on_success=lambda request, result, callback=on_success: self.on_response(request, result, callback),
             on_failure=lambda request, result, callback=on_failure: self.on_response(request, result, callback),
@@ -47,7 +47,6 @@ class SendRequest():
 
 
     def on_response(self, request, result, callback):
-        print(result)
         self.loading_indicator.stop()
 
         if callback is not None:
