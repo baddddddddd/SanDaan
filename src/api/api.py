@@ -331,7 +331,7 @@ def get_directions():
         center = get_center([origin, destination])
         radius = (get_distance(origin, destination) * 1100) // 2
 
-        graph = ox.graph_from_point(center, dist=radius, network_type="drive")
+        graph = ox.graph_from_point(center, dist=radius, network_type="walk")
 
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
         destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
