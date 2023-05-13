@@ -193,12 +193,6 @@ def get_route():
 
             route_nodes += path[1:]
 
-        # get nearest node
-        # check if nearest node is last node
-        # if not, pathfind from last node to chosen node
-        # graph pathfinded route
-        # add pathfinded route to route_nodes
-
         route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
 
         return jsonify({
@@ -268,6 +262,7 @@ def add_route():
         return jsonify({
             "msg": "Uploaded route successfully."
         }), 200
+
 
 @app.route("/directions", methods=["POST"])
 @jwt_required()
@@ -344,13 +339,6 @@ def get_directions():
         path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
         shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
-        # Determine which routes will get the user from their current location to the target location
-
-        all_route = []
-        for route in candidate_routes:
-            all_route += route["coords"]
-
-
         start_walk = None
         for i, node in enumerate(shortest_route):
             if node in route_network_coords:
@@ -365,8 +353,6 @@ def get_directions():
 
         start = start_walk[-1]
         end = end_walk[0]
-        #start = [graph.nodes[origin_node]["y"], graph.nodes[origin_node]["x"]]
-        #end = [graph.nodes[destination_node]["y"], graph.nodes[destination_node]["x"]]
 
         routes = get_complete_routes(candidate_routes, start, end)
 
