@@ -178,6 +178,8 @@ class RouteFinding(InteractiveMap):
 
 
     def show_viable_routes(self, result):
+        self.draw_route(result["routes"])
+        return
         viable_routes = result["routes"]
 
         for route in viable_routes:

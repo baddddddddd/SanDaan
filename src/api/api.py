@@ -336,47 +336,35 @@ def get_directions():
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
         destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
 
-        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
-
-        shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
-
-        # Determine which routes will get the user from their current location to the target location
-
-        viable_routes = []
-        all_route = []
-        for route in candidate_routes:
-            all_route += route["coords"]
-
-
-        first_stop = None
-        for i, node in enumerate(shortest_route):
-            if node in all_route:
-                first_stop = node
-                break
-
-        last_stop = None
-        for i, node in reversed(list(enumerate(shortest_route))):
-            if node in all_route:
-                last_stop = node
-                break
-
-        for idx, route in enumerate(candidate_routes):
-            found_first_stop = False
-
-            for i, node in enumerate(route["coords"]):
-                if not found_first_stop and node == first_stop:
-                    found_first_stop = True
-
-                if node == last_stop:
-                    if not found_first_stop:
-                        break
-
-                    viable_routes.append(candidate_routes[idx])
-                    break
+                
 
         return jsonify({
-            "routes": viable_routes
+            "routes": "awd",
         })
+
+
+# Get a list of all connected routes from two group of routes
+def get_connected_routes(group_a: list, group_b: list):
+    results = []
+
+    for route_a in group_a:
+        for route_b in group_b:
+            connected = False
+
+            for i, coord_a in enumerate(route_a):
+                for j, coord_b in enumerate(route_b):
+                    if coord_a == coord_b:
+                        results.append([route_a[:i + 1], route_b[j:]])
+                        connected = True
+                        break
+                
+                if connected:
+                    break
+
+    return results
+        
+            
+
 
 if __name__ == "__main__":
     app.run()
