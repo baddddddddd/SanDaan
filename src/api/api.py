@@ -351,6 +351,11 @@ def get_directions():
                 end_walk = shortest_route[i:]
                 break
 
+        if start_walk is None or end_walk is None:
+            return jsonify({
+                "msg": "No routes found."
+            }), 404
+        
         start = start_walk[-1]
         end = end_walk[0]
 
