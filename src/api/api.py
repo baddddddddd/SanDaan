@@ -420,8 +420,11 @@ def get_connected_routes(group_a: list, group_b: list):
         for route_b in group_b:
             connected = False
 
-            if route_a[-1]["id"] == route_b[0]["id"]:
-                continue
+            # Avoid creating looping routes
+            for route_a_step in route_a:
+                for route_b_step in route_b:
+                    if route_a_step["id"] == route_b_step["id"]:
+                        continue
 
             route_a_coords = route_a[-1]["coords"]
             route_b_coords = route_b[0]["coords"]
