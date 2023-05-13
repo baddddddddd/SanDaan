@@ -329,9 +329,9 @@ def get_directions():
             candidate_routes.append(route)
         
         center = get_center([origin, destination])
-        radius = (get_distance(origin, destination) * 1100) // 2
+        radius = (get_distance(origin, destination) * 1500) // 2
 
-        graph = ox.graph_from_point(center, dist=radius, network_type="walk")
+        graph = ox.graph_from_point(center, dist=radius, network_type="drive")
 
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
         destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
@@ -343,8 +343,6 @@ def get_directions():
         end = [graph.nodes[destination_node]["y"], graph.nodes[destination_node]["x"]]
 
         routes = get_complete_routes(candidate_routes, start, end)
-
-        print(routes)
 
         return jsonify({
             "routes": routes,
@@ -367,10 +365,10 @@ def get_complete_routes(candidate_routes, start, end):
                 route = candidate_route.copy()
                 route["coords"] = route["coords"][:i + 1]
                 end_routes.append(route)
-
-    # Depth = 1
+    
+    # Handle cases where one transport vehicle is already enough to get to destination
     for start_route in start_routes:
-        for i, coord in enumerate(start_route):
+        for i, coord in enumerate(start_route["coords"]):
             if end == coord:
                 route = start_route.copy()
                 route["coords"] = route["coords"][:i + 1]
@@ -379,13 +377,26 @@ def get_complete_routes(candidate_routes, start, end):
 
     if len(complete_routes) > 0:
         return complete_routes
-    
-    # Depth = 2
-    results = get_connected_routes(start_routes, end_routes)
 
-    if len(results) > 0:
-        return results
+    # Handle cases where more than one transport vehicles is needed to get to destination
+    start_network = [[route] for route in start_routes]
+    end_network = [[route] for route in end_routes]
+    full_network = [[route] for route in candidate_routes]
 
+    for i in range(5):
+        complete_routes = get_connected_routes(start_network, end_network)
+
+        if len(complete_routes) > 0:
+            return complete_routes
+        
+        if i % 2 == 0:
+            start_network = get_connected_routes(start_network, full_network)
+        else:
+            end_network = get_connected_routes(full_network, end_network)
+
+        if len(start_network) == 0 or len(end_network) == 0:
+            return complete_routes
+            
     
 # Get a list of all connected routes from two group of routes
 def get_connected_routes(group_a: list, group_b: list):
@@ -395,18 +406,27 @@ def get_connected_routes(group_a: list, group_b: list):
         for route_b in group_b:
             connected = False
 
-            route_a_coords = route_a["coords"]
-            route_b_coords = route_b["coords"]
+            if route_a[-1]["id"] == route_b[0]["id"]:
+                continue
+
+            route_a_coords = route_a[-1]["coords"]
+            route_b_coords = route_b[0]["coords"]
+
             for i, coord_a in enumerate(route_a_coords):
                 for j, coord_b in enumerate(route_b_coords):
                     if coord_a == coord_b:
-                        sliced_route_a = route_a.copy()
-                        sliced_route_b = route_b.copy()
+                        sliced_route_a = route_a[-1].copy()
+                        sliced_route_b = route_b[0].copy()
 
                         sliced_route_a["coords"] = route_a_coords[:i + 1]
                         sliced_route_b["coords"] = route_b_coords[j:]
 
-                        results.append([sliced_route_a, sliced_route_b])
+                        new_route = route_a.copy()
+
+                        new_route[-1] = sliced_route_a
+                        new_route.append(sliced_route_b)
+
+                        results.append(new_route)
                         connected = True
                         break
                 
@@ -416,8 +436,6 @@ def get_connected_routes(group_a: list, group_b: list):
     return results
         
             
-
-
 if __name__ == "__main__":
     app.run()
     
