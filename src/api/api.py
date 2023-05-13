@@ -335,14 +335,58 @@ def get_directions():
 
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
         destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
+        
+        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+        shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
-                
+        start = [graph.nodes[origin_node]["y"], graph.nodes[origin_node]["x"]]
+        end = [graph.nodes[destination_node]["y"], graph.nodes[destination_node]["x"]]
+
+        routes = get_complete_routes(candidate_routes, start, end)
+
+        print(routes)
 
         return jsonify({
-            "routes": "awd",
+            "routes": routes,
         })
 
 
+def get_complete_routes(candidate_routes, start, end):
+    complete_routes = []
+
+    start_routes = []
+    end_routes = []
+    for candidate_route in candidate_routes:
+        for i, coord in enumerate(candidate_route["coords"]):
+            if start == coord:
+                route = candidate_route.copy()
+                route["coords"] = route["coords"][i:]
+                start_routes.append(route)
+
+            if end == coord:
+                route = candidate_route.copy()
+                route["coords"] = route["coords"][:i + 1]
+                end_routes.append(route)
+
+    # Depth = 1
+    for start_route in start_routes:
+        for i, coord in enumerate(start_route):
+            if end == coord:
+                route = start_route.copy()
+                route["coords"] = route["coords"][:i + 1]
+                complete_routes.append([route])
+                break
+
+    if len(complete_routes) > 0:
+        return complete_routes
+    
+    # Depth = 2
+    results = get_connected_routes(start_routes, end_routes)
+
+    if len(results) > 0:
+        return results
+
+    
 # Get a list of all connected routes from two group of routes
 def get_connected_routes(group_a: list, group_b: list):
     results = []
@@ -351,10 +395,18 @@ def get_connected_routes(group_a: list, group_b: list):
         for route_b in group_b:
             connected = False
 
-            for i, coord_a in enumerate(route_a):
-                for j, coord_b in enumerate(route_b):
+            route_a_coords = route_a["coords"]
+            route_b_coords = route_b["coords"]
+            for i, coord_a in enumerate(route_a_coords):
+                for j, coord_b in enumerate(route_b_coords):
                     if coord_a == coord_b:
-                        results.append([route_a[:i + 1], route_b[j:]])
+                        sliced_route_a = route_a.copy()
+                        sliced_route_b = route_b.copy()
+
+                        sliced_route_a["coords"] = route_a_coords[:i + 1]
+                        sliced_route_b["coords"] = route_b_coords[j:]
+
+                        results.append([sliced_route_a, sliced_route_b])
                         connected = True
                         break
                 

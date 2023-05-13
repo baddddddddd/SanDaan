@@ -178,14 +178,18 @@ class RouteFinding(InteractiveMap):
 
 
     def show_viable_routes(self, result):
-        self.draw_route(result["routes"])
-        return
         viable_routes = result["routes"]
 
-        for route in viable_routes:
+        for route_steps in viable_routes:
+            name = " + ".join([route["name"] for route in route_steps])
+
+            test_coords = []
+            for route in route_steps:
+                test_coords += route["coords"]
+            #test_coords = [route["coords"] for route in route_steps]
             self.route_bottomsheet.add_item(
-                text=f"{route['name']}",
-                callback=lambda _, coords=route["coords"]: self.draw_route(coords),
+                text=f"{name}",
+                callback=lambda _, coords=test_coords: self.draw_route(coords),
             )
         self.route_bottomsheet.open()
 
