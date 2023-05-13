@@ -315,6 +315,7 @@ def get_directions():
         results = cursor.fetchall()
 
         candidate_routes = []
+        route_network_coords = []
         for res in results:
             route = {
                 "id": res[0],
@@ -327,6 +328,10 @@ def get_directions():
                 "uploader_id": res[7],
             }
             candidate_routes.append(route)
+
+            for coord in route["coords"]:
+                if coord not in route_network_coords:
+                    route_network_coords.append(coord)
         
         center = get_center([origin, destination])
         radius = (get_distance(origin, destination) * 1500) // 2
@@ -339,12 +344,35 @@ def get_directions():
         path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
         shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
-        start = [graph.nodes[origin_node]["y"], graph.nodes[origin_node]["x"]]
-        end = [graph.nodes[destination_node]["y"], graph.nodes[destination_node]["x"]]
+        # Determine which routes will get the user from their current location to the target location
+
+        all_route = []
+        for route in candidate_routes:
+            all_route += route["coords"]
+
+
+        start_walk = None
+        for i, node in enumerate(shortest_route):
+            if node in route_network_coords:
+                start_walk = shortest_route[:i + 1]
+                break
+
+        end_walk = None
+        for i, node in reversed(list(enumerate(shortest_route))):
+            if node in route_network_coords:
+                end_walk = shortest_route[i:]
+                break
+
+        start = start_walk[-1]
+        end = end_walk[0]
+        #start = [graph.nodes[origin_node]["y"], graph.nodes[origin_node]["x"]]
+        #end = [graph.nodes[destination_node]["y"], graph.nodes[destination_node]["x"]]
 
         routes = get_complete_routes(candidate_routes, start, end)
 
         return jsonify({
+            "start_walk": start_walk,
+            "end_walk": end_walk,
             "routes": routes,
         })
 
