@@ -352,7 +352,6 @@ class RouteMapping(InteractiveMap):
             "region": route_region,
             "state": route_state,
             "city_id": route_city,
-            "uploader_id": COMMON["id"],
         })
 
         SendRequest(

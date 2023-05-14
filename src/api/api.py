@@ -246,7 +246,7 @@ def add_route():
         start_time = data.get("start_time", None)
         end_time = data.get("end_time", None)
         coords = data.get("coords", None)
-        uploader_id = data.get("uploader_id", None)
+        uploader_id = get_jwt_identity()
 
         region = data.get("region", None)
         region_id = fetch_id_or_insert("regions", "name", region)
