@@ -270,7 +270,9 @@ class MainApp(MDApp):
     def get_cache(self):
         if self.cache.exists("authorization"):
             access_token = self.cache.get("authorization").get("access_token", None)
-            id = self.cache.get("authorization").get("id", None)
+            refresh_token = self.cache.get("authorization").get("refresh_token", None)
+            COMMON["ACCESS_TOKEN"] = access_token
+            COMMON["REFRESH_TOKEN"] = refresh_token
 
             # Check if token is still valid and user id still exists
             url = f"{API_URL}/verify"
@@ -278,16 +280,16 @@ class MainApp(MDApp):
             
             SendRequest(
                 url=url,
-                on_success=lambda _, result, access_token=access_token, id=id: self.skip_login(access_token, id),
+                on_success=lambda _, result: self.skip_login(),
                 loading_indicator=self.cache_loading,
             )
 
 
-    def skip_login(self, access_token, id):
+    def skip_login(self):
         result = {
-                "access_token": access_token,
-                "id": id,
-            }
+            "access_token": COMMON["ACCESS_TOKEN"],
+            "refresh_token": COMMON["REFRESH_TOKEN"],
+        }
 
         self.show_main_screen(result)
 
@@ -389,21 +391,19 @@ class MainApp(MDApp):
 
     def show_main_screen(self, result):
         access_token = result.get("access_token")
-        id = result.get("id")
+        refresh_token = result.get("refresh_token")
 
         # Save authorization details to cache
         self.cache.put(
             key="authorization",
             access_token=access_token,
-            id=id,
+            refresh_token=refresh_token,
         )
 
         # Set authorization header and save user id
         HEADERS["Authorization"] = f"Bearer {access_token}"
-        COMMON["id"] = id
-
-        with open("res.txt", "+a") as f:
-            f.write(str(HEADERS) + "\n")
+        COMMON["ACCESS_TOKEN"] = access_token
+        COMMON["REFRESH_TOKEN"] = refresh_token
 
         # Change the current screen to the mapview screen
         self.screen_manager.transition.direction = "left"

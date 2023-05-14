@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_bcrypt import bcrypt
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, create_refresh_token, get_jwt_identity
 from mysql.connector.errors import DatabaseError
 
+import datetime
 import json
 import math
 import mysql.connector
@@ -16,6 +17,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
 jwt = JWTManager(app)
 
 db = mysql.connector.connect(
@@ -42,11 +45,21 @@ def execute_query(query, params = tuple(), force=True):
 @app.route("/verify", methods=["GET"])
 @jwt_required()
 def verify_token():
-    if request.method == "GET":
-        return jsonify({
-            "msg": "Token is currently valid"
-        })
+    return jsonify(
+        msg="Token is currently valid",
+    ), 200
     
+
+# Create a route to refresh an expired access token using a refresh token
+@app.route("/refresh", methods=["GET"])
+@jwt_required(refresh=True)
+def refresh():
+    user_id = get_jwt_identity()
+    access_token = create_access_token(identity=user_id)
+    return jsonify(
+        access_token=access_token,
+    ), 200
+
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -111,11 +124,12 @@ def login():
 
     hashed_pw = result[3].encode("ascii")
     if bcrypt.checkpw(password.encode("utf-8"), hashed_pw):
-        access_token = create_access_token(identity=result[0])
-        id = result[0]
+        user_id = result[0]
+        access_token = create_access_token(identity=user_id)
+        refresh_token = create_refresh_token(identity=user_id)
         return jsonify({
             "access_token": access_token,
-            "id": id,
+            "refresh_token": refresh_token,
         }), 200
     
     else:

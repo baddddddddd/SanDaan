@@ -99,13 +99,14 @@ class InteractiveMap(MapView):
         url += url_params
 
         # Use a unique user agent
-        headers = {'User-Agent': 'SanDaan2/1.0'}
+        headers = {'User-Agent': 'SanDaan/1.0'}
 
         SendRequest(
             url=url, 
             headers=headers,
             loading_indicator=self.loading_bar,
             on_success=on_success_callback,
+            auto_refresh=False,
         )
 
 
@@ -131,6 +132,7 @@ class InteractiveMap(MapView):
             headers=headers,
             loading_indicator=self.loading_bar,
             on_success=on_success_callback,
+            auto_refresh=False,
         )
 
 
