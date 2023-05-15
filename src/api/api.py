@@ -42,6 +42,15 @@ def execute_query(query, params = tuple(), force=True):
         cursor.execute(query, params)
 
 
+# Check for bad requests
+def has_missing_data(required_data: list):
+    for data in required_data:
+        if data is None:
+            return True
+        
+    return False
+
+
 @app.route("/verify", methods=["GET"])
 @jwt_required()
 def verify_token():
@@ -238,148 +247,156 @@ def fetch_id_or_insert(table, column, value):
 @app.route("/contribute", methods=["POST"])
 @jwt_required()
 def add_route():
-    if request.method == "POST":
-        data = request.json
+    data = request.json
 
-        name = data.get("name", None)
-        description = data.get("description", None)
-        start_time = data.get("start_time", None)
-        end_time = data.get("end_time", None)
-        coords = data.get("coords", None)
-        uploader_id = get_jwt_identity()
+    name = data.get("name", None)
+    description = data.get("description", None)
+    start_time = data.get("start_time", None)
+    end_time = data.get("end_time", None)
+    coords = data.get("coords", None)
+    uploader_id = get_jwt_identity()
 
-        region = data.get("region", None)
-        region_id = fetch_id_or_insert("regions", "name", region)
+    region = data.get("region", None)
+    region_id = fetch_id_or_insert("regions", "name", region)
 
-        state = data.get("state", None)
-        state_id = fetch_id_or_insert("states", "name", state)
+    state = data.get("state", None)
+    state_id = fetch_id_or_insert("states", "name", state)
 
-        city_id = data.get("city_id", None)
+    city_id = data.get("city_id", None)
 
-        # Insert route information into routes table
-        query = "INSERT INTO routes (name, description, start_time, end_time, coords, uploader_id) VALUES (%s, %s, %s, %s, %s, %s)"
-        params = (name, description, start_time, end_time, json.dumps(coords), uploader_id)
-        execute_query(query, params)
-        db.commit()
+    # Filter out bad requests by checking if one of the required data from the body is missing
+    route_info = [name, description, start_time, end_time, coords, region, state, city_id]
+    if has_missing_data(route_info):
+        return jsonify(msg="Bad Request: Incomplete data"), 400
 
-        # Get the resulting route id
-        query = "SELECT LAST_INSERT_ID()"
-        execute_query(query)
-        route_id = cursor.fetchone()[0]
+    # Insert route information into routes table
+    query = "INSERT INTO routes (name, description, start_time, end_time, coords, uploader_id) VALUES (%s, %s, %s, %s, %s, %s)"
+    params = (name, description, start_time, end_time, json.dumps(coords), uploader_id)
+    execute_query(query, params)
+    db.commit()
 
-        # Insert route area into route_areas table
-        query = "INSERT INTO route_areas (region_id, state_id, city_id, route_id) VALUES (%s, %s, %s, %s)"
-        params = (region_id, state_id, city_id, route_id)
-        execute_query(query, params)
-        db.commit() 
+    # Get the resulting route id
+    query = "SELECT LAST_INSERT_ID()"
+    execute_query(query)
+    route_id = cursor.fetchone()[0]
 
-        return jsonify({
-            "msg": "Uploaded route successfully."
-        }), 200
+    # Insert route area into route_areas table
+    query = "INSERT INTO route_areas (region_id, state_id, city_id, route_id) VALUES (%s, %s, %s, %s)"
+    params = (region_id, state_id, city_id, route_id)
+    execute_query(query, params)
+    db.commit() 
+
+    return jsonify(
+        msg="Uploaded route successfully.",
+    ), 200
 
 
 @app.route("/directions", methods=["POST"])
 @jwt_required()
 def get_directions():
-    if request.method == "POST":
-        data = request.json
+    data = request.json
 
-        origin = data.get("origin", None)
-        destination = data.get("destination", None)
-        route_area = data.get("route_area", None)
+    origin = data.get("origin", None)
+    destination = data.get("destination", None)
+    route_area = data.get("route_area", None)
 
-        region = route_area.get("region", None)
-        region_id = fetch_id_or_insert("regions", "name", region) if region is not None else None
-        
-        state = route_area.get("state", None)
-        state_id = fetch_id_or_insert("states", "name", state) if state is not None else None
-        
-        city_id = route_area.get("city_id", None)
+    # Filter out bad requests
+    required_data = [origin, destination, route_area]
+    if has_missing_data(required_data):
+        return jsonify(msg="Bad Request: Incomplete data"), 400
 
-        route_area_ids = {
-            "city_id": city_id,
-            "state_id": state_id,
-            "region_id": region_id,
+    region = route_area.get("region", None)
+    region_id = fetch_id_or_insert("regions", "name", region) if region is not None else None
+    
+    state = route_area.get("state", None)
+    state_id = fetch_id_or_insert("states", "name", state) if state is not None else None
+    
+    city_id = route_area.get("city_id", None)
+
+    route_area_ids = {
+        "city_id": city_id,
+        "state_id": state_id,
+        "region_id": region_id,
+    }
+
+    condition = ""
+    for column, value in route_area_ids.items():
+        if value is not None:
+            condition = f" WHERE route_areas.{column}={value}"
+            break
+
+    columns = ", ".join([
+        "routes.id",
+        "routes.name",
+        "routes.description",
+        "routes.start_time",
+        "routes.end_time",
+        "routes.coords",
+        "routes.connections",
+        "routes.uploader_id",
+    ])
+
+    query = f"SELECT {columns} FROM route_areas INNER JOIN routes ON route_areas.route_id = routes.id" + condition
+    execute_query(query)
+    results = cursor.fetchall()
+
+    candidate_routes = []
+    route_network_coords = []
+    for res in results:
+        route = {
+            "id": res[0],
+            "name": res[1],
+            "description": res[2],
+            "start_time": str(res[3]),
+            "end_time": str(res[4]),
+            "coords": json.loads(res[5]),
+            "connections": res[6],
+            "uploader_id": res[7],
         }
+        candidate_routes.append(route)
 
-        condition = ""
-        for column, value in route_area_ids.items():
-            if value is not None:
-                condition = f" WHERE route_areas.{column}={value}"
-                break
+        for coord in route["coords"]:
+            if coord not in route_network_coords:
+                route_network_coords.append(coord)
+    
+    center = get_center([origin, destination])
+    radius = (get_distance(origin, destination) * 1500) // 2
 
-        columns = ", ".join([
-            "routes.id",
-            "routes.name",
-            "routes.description",
-            "routes.start_time",
-            "routes.end_time",
-            "routes.coords",
-            "routes.connections",
-            "routes.uploader_id",
-        ])
+    graph = ox.graph_from_point(center, dist=radius, network_type="drive")
 
-        query = f"SELECT {columns} FROM route_areas INNER JOIN routes ON route_areas.route_id = routes.id" + condition
-        execute_query(query)
-        results = cursor.fetchall()
+    origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
+    destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
+    
+    path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+    shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
-        candidate_routes = []
-        route_network_coords = []
-        for res in results:
-            route = {
-                "id": res[0],
-                "name": res[1],
-                "description": res[2],
-                "start_time": str(res[3]),
-                "end_time": str(res[4]),
-                "coords": json.loads(res[5]),
-                "connections": res[6],
-                "uploader_id": res[7],
-            }
-            candidate_routes.append(route)
+    start_walk = None
+    for i, node in enumerate(shortest_route):
+        if node in route_network_coords:
+            start_walk = shortest_route[:i + 1]
+            break
 
-            for coord in route["coords"]:
-                if coord not in route_network_coords:
-                    route_network_coords.append(coord)
-        
-        center = get_center([origin, destination])
-        radius = (get_distance(origin, destination) * 1500) // 2
+    end_walk = None
+    for i, node in reversed(list(enumerate(shortest_route))):
+        if node in route_network_coords:
+            end_walk = shortest_route[i:]
+            break
 
-        graph = ox.graph_from_point(center, dist=radius, network_type="drive")
+    if start_walk is None or end_walk is None:
+        return jsonify(
+            msg="No routes found.",
+        ), 404
+    
+    start = start_walk[-1]
+    end = end_walk[0]
 
-        origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
-        destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
-        
-        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
-        shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
+    routes = get_complete_routes(candidate_routes, start, end)
 
-        start_walk = None
-        for i, node in enumerate(shortest_route):
-            if node in route_network_coords:
-                start_walk = shortest_route[:i + 1]
-                break
-
-        end_walk = None
-        for i, node in reversed(list(enumerate(shortest_route))):
-            if node in route_network_coords:
-                end_walk = shortest_route[i:]
-                break
-
-        if start_walk is None or end_walk is None:
-            return jsonify({
-                "msg": "No routes found."
-            }), 404
-        
-        start = start_walk[-1]
-        end = end_walk[0]
-
-        routes = get_complete_routes(candidate_routes, start, end)
-
-        return jsonify({
-            "start_walk": start_walk,
-            "end_walk": end_walk,
-            "routes": routes,
-        })
+    return jsonify(
+        start_walk=start_walk,
+        end_walk=end_walk,
+        routes=routes,
+    ), 200
 
 
 def get_complete_routes(candidate_routes, start, end):

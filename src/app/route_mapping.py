@@ -1,5 +1,4 @@
 from kivy.clock import Clock
-from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
@@ -9,7 +8,7 @@ from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
 import json
 
-from common import API_URL, HEADERS, COMMON, SendRequest, TopScreenLoadingBar
+from common import API_URL, SendRequest, TopScreenLoadingBar
 from interactive_map import InteractiveMap
 from search_view import SearchBar
 
