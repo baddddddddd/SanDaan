@@ -33,10 +33,7 @@ class InteractiveMap(MapView):
             gps.configure(on_location=self.update_location)
             gps.start()
 
-            # SanDaan API URL for hosting API on the web server
-            # API_URL = "https://sandaan-api.onrender.com"
-
-        self.graphed_route = None
+        self.graphed_route = []
         self.graph_line = None
 
 
@@ -74,13 +71,13 @@ class InteractiveMap(MapView):
 
 
     def redraw_route(self):
-        if self.graphed_route is not None and self.graph_line is not None:
+        if len(self.graphed_route) > 0 and self.graph_line is not None:
             self.canvas.remove(self.graph_line)
             self.draw_route(self.graphed_route)
 
 
     def remove_route(self):
-        if self.graphed_route is not None and self.graph_line is not None:
+        if len(self.graphed_route) > 0 and self.graph_line is not None:
             self.canvas.remove(self.graph_line)
             self.graphed_route = []
 

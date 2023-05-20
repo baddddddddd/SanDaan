@@ -1,4 +1,5 @@
 from kivy.clock import Clock
+from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
@@ -6,6 +7,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import MDList, OneLineListItem
 from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
+import datetime
 import json
 
 from common import API_URL, SendRequest, TopScreenLoadingBar
@@ -35,6 +37,7 @@ MDBottomNavigationItem:
             lon: 121.07339
             zoom: 15
             loading_bar: loading
+            confirm_route_button: confirm_route_button
 
         TopScreenLoadingBar:
             id: loading
@@ -43,8 +46,10 @@ MDBottomNavigationItem:
             map: map
 
         MDFloatingActionButton:
+            id: confirm_route_button
             icon: "check-bold"
             pos_hint: {"center_x": 0.875, "center_y": 0.32}
+            disabled: True
             on_release:
                 map.confirm_route()
 
@@ -63,12 +68,14 @@ MDBottomNavigationItem:
 '''
 
 class RouteInformation(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, confirmation_button):
+        super().__init__()
+        self.confirmation_button = confirmation_button
 
         self.name_field = MDTextField(
-            hint_text="Route name"
+            hint_text="Route name",
         )
+        self.name_field.bind(text=lambda *_: self.check_complete())
         self.add_widget(self.name_field)
 
         self.desc_field = MDTextField(
@@ -76,6 +83,7 @@ class RouteInformation(BoxLayout):
             multiline=True,
         )
         self.desc_field.bind(height=self.update_height)
+        self.desc_field.bind(text=lambda *_: self.check_complete())
         self.add_widget(self.desc_field)
 
         self.start_time_button = MDRaisedButton(
@@ -84,7 +92,7 @@ class RouteInformation(BoxLayout):
             on_release=self.show_start_time_picker,
         )
 
-        self.start_time_dialog = MDTimePicker()
+        self.start_time_dialog = MDTimePicker(time=datetime.time.fromisoformat("00:00:00"))
         self.add_widget(self.start_time_button)
 
         self.end_time_button = MDRaisedButton(
@@ -93,7 +101,7 @@ class RouteInformation(BoxLayout):
             on_release=self.show_end_time_picker,
         )
 
-        self.end_time_dialog = MDTimePicker()
+        self.end_time_dialog = MDTimePicker(time=datetime.time.fromisoformat("00:00:00"))
         self.add_widget(self.end_time_button)
 
 
@@ -109,7 +117,14 @@ class RouteInformation(BoxLayout):
         self.height = sum([children.height for children in self.children])
 
 
+    def check_complete(self):
+        self.confirmation_button.disabled = self.name_field.text == "" or self.desc_field.text == ""
+
+
 class RouteMapping(InteractiveMap):
+    confirm_route_button = ObjectProperty(None)
+
+
     class RoutePin(MapMarkerPopup):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
@@ -129,13 +144,7 @@ class RouteMapping(InteractiveMap):
 
         def remove_marker(self, *args):
             self.parent.parent.pins.remove(self)
-
-            if len(self.parent.parent.pins) >= 2:
-                self.parent.parent.connect_all_pins()
-
-            if len(self.parent.parent.pins) >= 1:
-                self.parent.parent.remove_route()
-                
+            self.parent.parent.connect_all_pins()
             self.parent.parent.remove_marker(self)      
 
 
@@ -145,12 +154,20 @@ class RouteMapping(InteractiveMap):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
+        
+        self.remove_widget(self.current_location_pin)
         self.pins = []
-        self.graphed_route = []
         self.graph_line = None
         self.waiting_for_route = False
-        self.route_information = RouteInformation()
+       
+        self.confirmation_button = MDFlatButton(
+            text="OK",
+            theme_text_color="Custom",
+            on_release=lambda _, index = 0: self.get_route_address(index),
+            disabled=True,
+        )
+
+        self.route_information = RouteInformation(self.confirmation_button)
         self.confirmation_dialog = MDDialog(
             title="Route Information",
             type="custom",
@@ -161,11 +178,7 @@ class RouteMapping(InteractiveMap):
                     theme_text_color="Custom",
                     on_release=self.cancel_confirmation,
                 ),
-                MDFlatButton(
-                    text="OK",
-                    theme_text_color="Custom",
-                    on_release=lambda _, index = 0: self.get_route_address(index),
-                ),
+                self.confirmation_button,
             ],
         )
         self.route_information.bind(height=self.update_dialog_height)
@@ -184,6 +197,7 @@ class RouteMapping(InteractiveMap):
             ],
         )
 
+
     def update_dialog_height(self, *args):
         new_height = sum([children.height for children in self.confirmation_dialog.content_cls.children])
         self.confirmation_dialog.update_height(new_height)
@@ -192,17 +206,9 @@ class RouteMapping(InteractiveMap):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             if touch.is_double_tap and not self.waiting_for_route:
-                # place pin
+                # Place pin on the map
                 coord = self.get_latlon_at(touch.x, touch.y, self.zoom)
                 self.place_route_pin(coord)
-                
-
-                # get nearest node
-
-                # check if nearest node is last node
-                # if not, pathfind from last node to chosen node
-                # graph pathfinded route
-                # add pathfinded route to route_nodes
 
         return super().on_touch_down(touch)
 
@@ -233,6 +239,7 @@ class RouteMapping(InteractiveMap):
             on_success=lambda _, result: self.connect_route(result),
         )
 
+        self.confirm_route_button.disabled = True
         self.waiting_for_route = True
 
 
@@ -244,10 +251,15 @@ class RouteMapping(InteractiveMap):
             self.graphed_route += result["route"][1:]
             self.redraw_route()
 
+        self.confirm_route_button.disabled = len(self.graphed_route) < 2
         self.waiting_for_route = False
 
 
     def connect_all_pins(self):
+        if len(self.pins) < 2:
+            self.confirm_route_button.disabled = True
+            return
+        
         url = f"{API_URL}/route"
         
         pin_coords = [(pin.lat, pin.lon) for pin in self.pins]
@@ -262,11 +274,15 @@ class RouteMapping(InteractiveMap):
             on_success=lambda _, result: self.redraw_all(result),
         )
         
+        self.confirm_route_button.disabled = True
         self.waiting_for_route = True
 
 
     def redraw_all(self, result):
+        self.remove_route()
         self.draw_directions(result)
+
+        self.confirm_route_button.disabled = len(self.graphed_route) < 2
         self.waiting_for_route = False
 
 
