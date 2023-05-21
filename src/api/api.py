@@ -604,7 +604,8 @@ def ping_database():
     query = "INSERT INTO ping () values ()"
     print("Sending ping to database...")
     execute_query(query)
-
+    db.commit()
+    
     query = "SELECT LAST_INSERT_ID()"
     execute_query(query)
     count = cursor.fetchone()[0]
