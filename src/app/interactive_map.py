@@ -2,6 +2,8 @@ from kivy.graphics import Line, Color
 from kivy.properties import ObjectProperty
 from kivy.utils import platform
 from kivy_garden.mapview import MapView, MapMarker, Coordinate
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from plyer import gps
 from urllib import parse
 
@@ -35,6 +37,8 @@ class InteractiveMap(MapView):
 
         self.graphed_route = []
         self.graph_line = None
+
+        self.main_dialog = MDDialog()
 
 
     def on_touch_move(self, touch):
@@ -151,3 +155,23 @@ class InteractiveMap(MapView):
             # Equivalent of rgba(29, 53, 87), which is the primary color of the palette used for UI
             Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
             self.graph_line = Line(points=points, width=3, cap="round", joint="round")
+
+
+    def show_popup_dialog(self, title: str, content=None):
+        self.main_dialog = MDDialog(
+            title=title,
+            type="custom",
+            content_cls=content,
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=lambda _: self.close_popup_dialog(),
+                ),
+            ],
+        )
+        self.main_dialog.open()
+
+
+    def close_popup_dialog(self):
+        self.main_dialog.dismiss()

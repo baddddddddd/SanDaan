@@ -4,6 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
 from kivymd.uix.list import MDList, OneLineListItem
 from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
@@ -77,6 +78,7 @@ class RouteInformation(BoxLayout):
         )
         self.name_field.bind(text=lambda *_: self.check_complete())
         self.add_widget(self.name_field)
+        self.name_field.padding = [0, 8, 0, 8]
 
         self.desc_field = MDTextField(
             hint_text="Route description",
@@ -129,7 +131,7 @@ class RouteMapping(InteractiveMap):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.remove_button = OneLineListItem(text="Remove")
-            self.remove_button.bind(on_release=self.remove_marker)
+            self.remove_button.bind(on_release=self.remove_pin)
 
             self.options = MDList(
                 md_bg_color="#000000"
@@ -142,7 +144,10 @@ class RouteMapping(InteractiveMap):
             Clock.schedule_once(self.enable_input, 0.2)
 
 
-        def remove_marker(self, *args):
+        def remove_pin(self, *args):
+            if self.parent.parent.waiting_for_route:
+                return
+            
             self.parent.parent.pins.remove(self)
             self.parent.parent.connect_all_pins()
             self.parent.parent.remove_marker(self)      
@@ -257,6 +262,7 @@ class RouteMapping(InteractiveMap):
 
     def connect_all_pins(self):
         if len(self.pins) < 2:
+            self.remove_route()
             self.confirm_route_button.disabled = True
             return
         
@@ -373,10 +379,32 @@ class RouteMapping(InteractiveMap):
             url=url,
             body=body,
             loading_indicator=self.loading_bar,
-            on_success=lambda _, result: self.show_upload_success(result),
+            on_success=lambda _, result: self.handle_upload_success(result),
+            on_failure=lambda _, result: self.handle_upload_failure(result),
         )
 
 
-    def show_upload_success(self, result):
+    def handle_upload_success(self, result):
         # Show dialog that the upload is success
-        print(result)
+        self.confirmation_dialog.dismiss()
+        success_message = result.get("msg", "")
+        content_cls = MDLabel(text=success_message)
+        self.show_popup_dialog("Route upload success", content_cls)   
+           
+        # Clear all pins and graphs
+        for pin in self.pins:
+            self.remove_marker(pin)
+
+        self.pins = []
+        self.remove_route()
+
+        # Clear route information
+        self.route_information = RouteInformation(self.confirmation_button)
+
+
+    def handle_upload_failure(self, result):
+        # Show dialog that the upload failed and why it failed
+        error_message = result.get("msg", "An unknown error occured.")
+        content_cls = MDLabel(text=error_message)
+        self.show_popup_dialog("Route upload failed", content_cls)
+        
