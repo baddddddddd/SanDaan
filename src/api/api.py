@@ -605,7 +605,7 @@ def ping_database():
     print("Sending ping to database...")
     execute_query(query)
     db.commit()
-    
+
     query = "SELECT LAST_INSERT_ID()"
     execute_query(query)
     count = cursor.fetchone()[0]
@@ -617,3 +617,5 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(send_ping, "interval", minutes=12)
 scheduler.add_job(ping_database, "interval", days=5)
 scheduler.start()
+
+ping_database()
