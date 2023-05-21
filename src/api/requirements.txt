@@ -6,3 +6,4 @@ mysql-connector-python
 osmnx
 scikit-learn
 python-dotenv
+pytz

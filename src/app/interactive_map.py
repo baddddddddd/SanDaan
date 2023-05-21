@@ -1,15 +1,46 @@
+from kivy.clock import Clock
 from kivy.graphics import Line, Color
-from kivy.network.urlrequest import UrlRequest
+from kivy.properties import ObjectProperty
 from kivy.utils import platform
-from kivy_garden.mapview import MapView, MapMarker, Coordinate
+from kivy_garden.mapview import MapView, MapMarker, MapMarkerPopup, Coordinate
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.list import MDList, OneLineListItem
 from plyer import gps
 from urllib import parse
-import json
 
-from common import API_URL, HEADERS
+from common import API_URL, HEADERS, SendRequest
 
 
 class InteractiveMap(MapView):
+    loading_bar = ObjectProperty(None)
+
+
+    class MapPin(MapMarkerPopup):
+        def __init__(self, lat, lon, remove_callback):
+            super().__init__(lat=lat, lon=lon)
+            self.remove_button = OneLineListItem(text="Remove")
+            self.remove_button.bind(on_release= lambda obj: remove_callback(obj))
+
+            self.options = MDList(
+                md_bg_color="#000000"
+            )
+
+            self.options.add_widget(self.remove_button)
+            self.add_widget(self.options)
+
+            self.disabled = True
+            Clock.schedule_once(lambda *_: self.enable_input(), 0.2)
+
+
+        def remove_pin(self):
+            self.parent.parent.remove_marker(self)      
+
+
+        def enable_input(self):
+            self.disabled = False
+
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -32,11 +63,10 @@ class InteractiveMap(MapView):
             gps.configure(on_location=self.update_location)
             gps.start()
 
-            # SanDaan API URL for hosting API on the web server
-            # API_URL = "https://sandaan-api.onrender.com"
-
-        self.graphed_route = None
+        self.graphed_route = []
         self.graph_line = None
+
+        self.main_dialog = MDDialog()
 
 
     def on_touch_move(self, touch):
@@ -73,13 +103,13 @@ class InteractiveMap(MapView):
 
 
     def redraw_route(self):
-        if self.graphed_route is not None and self.graph_line is not None:
+        if len(self.graphed_route) > 0 and self.graph_line is not None:
             self.canvas.remove(self.graph_line)
             self.draw_route(self.graphed_route)
 
 
     def remove_route(self):
-        if self.graphed_route is not None and self.graph_line is not None:
+        if len(self.graphed_route) > 0 and self.graph_line is not None:
             self.canvas.remove(self.graph_line)
             self.graphed_route = []
 
@@ -100,7 +130,13 @@ class InteractiveMap(MapView):
         # Use a unique user agent
         headers = {'User-Agent': 'SanDaan/1.0'}
 
-        UrlRequest(url, req_headers=headers, on_success=on_success_callback)
+        SendRequest(
+            url=url, 
+            headers=headers,
+            loading_indicator=self.loading_bar,
+            on_success=on_success_callback,
+            auto_refresh=False,
+        )
 
 
     def get_address_by_location(self, coord: Coordinate, on_success_callback, zoom = 10):
@@ -120,10 +156,16 @@ class InteractiveMap(MapView):
         # Use a unique user agent
         headers = {'User-Agent': 'SanDaan/1.0'}
 
-        UrlRequest(url=url, req_headers=headers, on_success=on_success_callback)
+        SendRequest(
+            url=url,
+            headers=headers,
+            loading_indicator=self.loading_bar,
+            on_success=on_success_callback,
+            auto_refresh=False,
+        )
 
 
-    def draw_directions(self, urlrequest, result):
+    def draw_directions(self, result):
         route = result["route"]
         self.graphed_route = route
 
@@ -142,3 +184,22 @@ class InteractiveMap(MapView):
             Color(0.27058823529411763, 0.4823529411764706, 0.615686274509804)
             self.graph_line = Line(points=points, width=3, cap="round", joint="round")
 
+
+    def show_popup_dialog(self, title: str, content=None):
+        self.main_dialog = MDDialog(
+            title=title,
+            type="custom",
+            content_cls=content,
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=lambda _: self.close_popup_dialog(),
+                ),
+            ],
+        )
+        self.main_dialog.open()
+
+
+    def close_popup_dialog(self):
+        self.main_dialog.dismiss()
