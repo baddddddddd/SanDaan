@@ -1,3 +1,4 @@
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, request
 from flask_bcrypt import bcrypt
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, create_refresh_token, get_jwt_identity
@@ -9,6 +10,7 @@ import math
 import mysql.connector
 import pytz
 import os
+import requests
 
 import osmnx as ox
 import networkx as nx
@@ -411,7 +413,7 @@ def get_directions():
         }
         candidate_routes.append(route)
 
-        # Iterate coordinates of each route and unique coordinates to the network
+        # Iterate coordinates of each route and add unique coordinates to the network
         for coord in route["coords"]:
             if coord not in route_network_coords:
                 route_network_coords.append(coord)
@@ -446,7 +448,7 @@ def get_directions():
             break
 
     # If no walking routes were found, the user's location and the destinationn is not connected
-    # by any network of streets, therefore, return empty data too the client
+    # by any network of streets, therefore, return empty data to the client
     if start_walk is None or end_walk is None:
         return jsonify(
             start_walk=[],
@@ -581,8 +583,36 @@ def get_connected_routes(group_a: list, group_b: list):
                     break
 
     return results
-        
-            
-if __name__ == "__main__":
-    app.run()
-    
+
+
+# Endpoint for pinging the server periodically to keep it awake
+@app.route("/ping", methods=["GET"])
+def ping():
+    return "I'm awake!"
+
+
+# Function to ping the server
+def send_ping():
+    url = "https://sandaan-api.onrender.com/ping"
+    print("Sending ping to server...")
+    response = requests.get(url)
+    print("Ping sent to server:", response.status_code)
+
+
+# Function to ping and write to the database to prevent it from sleeping
+def ping_database():
+    query = "INSERT INTO ping () values ()"
+    print("Sending ping to database...")
+    execute_query(query)
+
+    query = "SELECT LAST_INSERT_ID()"
+    execute_query(query)
+    count = cursor.fetchone()[0]
+    print("Ping sent to database:", count)
+
+
+# Periodically call the function that sends a ping to the server using a scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(send_ping, "interval", minutes=12)
+scheduler.add_job(ping_database, "interval", days=5)
+scheduler.start()
