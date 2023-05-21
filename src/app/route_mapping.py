@@ -190,9 +190,30 @@ class RouteMapping(InteractiveMap):
 
         self.route_addresses = []
     
+        tutorial_message = '''1. Place pins (double tap) to trace the path that the transport route takes
+2. To remove a pin, tap on the pin and select "Remove"
+3. Please wait for the route to be processed every time you place or remove a pin (indicated by a loading bar on the top of your screen)
+4. If done mapping, press the Check button to confirm the route.
+5. For the route name, enter the "cards" that commuters would see in jeepneys or buses (such as "North Bayan" or "Alangilan" or "G. terminal")
+6. For the route description, enter any additional information that would help the commuters (such as fees or warnings)
+7. (Optional) For the start time and end time, pick the time range that the transport route is available (example 4:00 AM to 7:00 PM)
+8. After reviewing that the information you put is correct, press OK then wait
+'''
+
+        def disable_focus():
+            content_cls.focus = False
+
+        content_cls = MDTextField(
+            text=tutorial_message,
+            multiline=True,
+            text_color_normal="white",
+        )
+        content_cls.bind(focus=lambda *_: disable_focus())
+
         self.help_dialog = MDDialog(
             title="Route Mapping Manual",
             type="custom",
+            content_cls=content_cls,
             buttons=[
                 MDFlatButton(
                     text="OK",
