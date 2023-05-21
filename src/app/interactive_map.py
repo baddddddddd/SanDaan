@@ -60,7 +60,7 @@ class InteractiveMap(MapView):
 
             request_permissions([Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION])
             
-            gps.configure(on_location=self.update_location)
+            gps.configure(on_location=lambda **kwargs: self.update_location(kwargs))
             gps.start()
 
         self.graphed_route = []
@@ -91,7 +91,7 @@ class InteractiveMap(MapView):
         self.zoom = 15
 
 
-    def update_location(self, **kwargs):
+    def update_location(self, kwargs):
         if not self.has_initialized_gps:
             self.has_initialized_gps = True
             self.current_location = Coordinate(kwargs["lat"], kwargs["lon"])

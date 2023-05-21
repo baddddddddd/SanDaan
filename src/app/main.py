@@ -25,8 +25,9 @@ MDScreen:
             text: "LOG IN"
             pos_hint: {"center_x": .5, "center_y": .20}
             size_hint_x: .66
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             font_name: "BPoppins"
+            font_size: dp(14)
             on_release:
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.3
@@ -36,8 +37,9 @@ MDScreen:
             text: "SIGN UP"
             pos_hint: {"center_x": .5, "center_y": .10}
             size_hint_x: .66
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             font_name: "BPoppins"
+            font_size: dp(14)
             on_release:
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.3
@@ -55,7 +57,7 @@ MDScreen:
         MDIconButton:
             icon: "arrow-left"
             pos_hint: {"center_y": .95}
-            user_font_size: "36 sp"
+            user_font_size: dp(36)
             on_release:
                 root.manager.transition.direction = "right"
                 root.manager.current = "welcome"
@@ -63,14 +65,14 @@ MDScreen:
         MDLabel:
             text: "LOG IN"
             font_name: "BPoppins"
-            font_size: "26sp"
+            font_size: dp(24)
             pos_hint: {"center_x": .6, "center_y": .85}
             color: "#F1FAEE"
 
         MDLabel:
             text: "Sign in to continue"
             font_name: "MPoppins"
-            font_size: "18sp"
+            font_size: dp(16)
             pos_hint: {"center_x": .6, "center_y": .79}
             color: "#a8dadc"
 
@@ -80,9 +82,9 @@ MDScreen:
             font_name: "MPoppins"
             #validator: "email"
             size_hint_x: 0.8
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             pos_hint: {"center_x": .5, "center_y": .64}
-            font_size: 16
+            font_size: dp(14)
             on_focus:
                 self.required = True
             on_text_validate:
@@ -96,9 +98,9 @@ MDScreen:
             font_name: "MPoppins"
             password: True
             size_hint_x: 0.8
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             pos_hint: {"center_x": .5, "center_y": .52}
-            font_size: 16
+            font_size: dp(14)
             on_focus:
                 self.required = True
             on_text:
@@ -108,8 +110,9 @@ MDScreen:
             text: "LOG IN"
             pos_hint: {"center_x": .5, "center_y": .38}
             size_hint_x: .66
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             font_name: "BPoppins"
+            font_size: dp(14)
             on_release:
                 app.login_loading = loading
                 app.login_warning = warning
@@ -119,7 +122,7 @@ MDScreen:
             id: warning
             text: ""
             font_name: "MPoppins"
-            font_size: "12sp"
+            font_size: dp(12)
             pos_hint: {"center_x": 0.6, "center_y": .46}
             color: "#FF0000"
 '''
@@ -135,7 +138,7 @@ MDScreen:
         MDIconButton:
             icon: "arrow-left"
             pos_hint: {"center_y": .95}
-            user_font_size: "36 sp"
+            user_font_size: dp(36)
             on_release:
                 root.manager.transition.direction = "right"
                 root.manager.current = "welcome"
@@ -143,14 +146,14 @@ MDScreen:
         MDLabel:
             text: "SIGN UP"
             font_name: "BPoppins"
-            font_size: "26sp"
+            font_size: dp(24)
             pos_hint: {"center_x": .6, "center_y": .85}
             color: "#F1FAEE"
 
         MDLabel:
             text: "Create a new account"
             font_name: "MPoppins"
-            font_size: "18sp"
+            font_size: dp(16)
             pos_hint: {"center_x": .6, "center_y": .79}
             color: "#a8dadc"
 
@@ -159,9 +162,9 @@ MDScreen:
             hint_text: "Username"
             font_name: "MPoppins"
             size_hint_x: 0.8
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             pos_hint: {"center_x": .5, "center_y": .7}
-            font_size: 16
+            font_size: dp(14)
             on_focus:
                 self.required = True
             on_text:
@@ -175,9 +178,9 @@ MDScreen:
             font_name: "MPoppins"
             #validator: "email"
             size_hint_x: 0.8
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             pos_hint: {"center_x": .5, "center_y": .6}
-            font_size: 16
+            font_size: dp(14)
             on_focus:
                 self.required = True
             on_text:
@@ -191,9 +194,9 @@ MDScreen:
             font_name: "MPoppins"
             password: True
             size_hint_x: 0.8
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             pos_hint: {"center_x": .5, "center_y": .5}
-            font_size: 16
+            font_size: dp(14)
             on_focus:
                 self.required = True
             on_text:
@@ -207,9 +210,9 @@ MDScreen:
             font_name: "MPoppins"
             password: True
             size_hint_x: 0.8
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             pos_hint: {"center_x": .5, "center_y": .4}
-            font_size: 16
+            font_size: dp(14)
             on_focus:
                 self.required = True
             on_text:
@@ -219,7 +222,7 @@ MDScreen:
             id: warning
             text: ""
             font_name: "MPoppins"
-            font_size: "12sp"
+            font_size: dp(12)
             pos_hint: {"center_x": 0.6, "center_y": .35}
             color: "#FF0000"
 
@@ -227,8 +230,9 @@ MDScreen:
             text: "SIGN UP"
             pos_hint: {"center_x": .5, "center_y": .28}
             size_hint_x: .66
-            padding: [24, 14, 24, 14]
+            padding: [dp(24), dp(14), dp(24), dp(14)]
             font_name: "BPoppins"
+            font_size: dp(14)
             on_release:
                 app.signup_loading = loading
                 app.signup_warning = warning
@@ -261,6 +265,8 @@ class MainApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
 
+        self.screen_manager.current = "mapview"
+        
         self.cache = JsonStore("cache.json")
         Clock.schedule_once(lambda _: self.get_cache())
 

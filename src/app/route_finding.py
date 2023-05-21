@@ -76,7 +76,6 @@ MDBottomNavigationItem:
             on_release:
                 map.follow_user()
 
-
         MDFloatingActionButton:
             icon: "help"
             pos_hint: {"center_x": 0.875, "center_y": 0.10}
