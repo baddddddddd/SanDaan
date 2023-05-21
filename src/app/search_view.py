@@ -10,8 +10,9 @@ SEARCH_BAR = '''
 <SearchBar@MDTextField>:
     hint_text: "Search location"
     mode: "round"
-    size_hint_x: 0.9
+    size_hint: 0.9, None
     pos_hint: {"center_x": 0.5, "top": 0.98}
+    icon_left: "magnify"
     on_text_validate: 
         self.map.search_location(self.text, lambda _, result: self.display_results(result))
 '''

@@ -75,6 +75,7 @@ class RouteInformation(BoxLayout):
 
         self.name_field = MDTextField(
             hint_text="Route name",
+            max_text_length=50,
         )
         self.name_field.bind(text=lambda *_: self.check_complete())
         self.add_widget(self.name_field)
@@ -83,6 +84,7 @@ class RouteInformation(BoxLayout):
         self.desc_field = MDTextField(
             hint_text="Route description",
             multiline=True,
+            max_text_length=255,
         )
         self.desc_field.bind(height=self.update_height)
         self.desc_field.bind(text=lambda *_: self.check_complete())
