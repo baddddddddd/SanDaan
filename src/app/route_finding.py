@@ -4,7 +4,10 @@ from kivy.properties import ObjectProperty
 from kivy_garden.mapview import Coordinate
 from kivymd.uix.bottomnavigation import MDBottomNavigation
 from kivymd.uix.bottomsheet import MDListBottomSheet
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
+from kivymd.uix.textfield import MDTextField
 import json
 
 from common import API_URL, SendRequest, TopScreenLoadingBar
@@ -110,6 +113,38 @@ class RouteFinding(InteractiveMap):
         self.selected_route = None
         self.start_walk = None
         self.end_walk = None
+
+        tutorial_message = '''1. Place a pin (double tap) at the destination that you want to go to.
+2. Press the "Directions" (arrow) button then wait for the results.
+3. A list of different route combinations will show up. Select the route combination that you want to view.
+4. After selecting a route combination, a list of individual transport routes will be shown, select these routes one by one to view the route in the map.
+5. To go back to the list of individual transport routes, click the "View Panel" (two rectangles) button 
+6. To change target destination, double tap again anywhere on the map.
+7. To remove a pin, click on the pin then select "Remove"
+'''
+
+        def disable_focus():
+            content_cls.focus = False
+
+        content_cls = MDTextField(
+            text=tutorial_message,
+            multiline=True,
+            text_color_normal="white",
+        )
+        content_cls.bind(focus=lambda *_: disable_focus())
+
+        self.help_dialog = MDDialog(
+            title="Route Finding Manual",
+            type="custom",
+            content_cls=content_cls,
+            buttons=[
+                MDFlatButton(
+                    text="OK",
+                    theme_text_color="Custom",
+                    on_release=lambda _: self.help_dialog.dismiss(),
+                ),
+            ],
+        )
 
 
     def on_touch_down(self, touch):
