@@ -1,9 +1,10 @@
 from kivy.clock import Clock
 from kivy.lang.builder import Builder
 from kivy.properties import ObjectProperty
-from kivy_garden.mapview import MapMarker, Coordinate
+from kivy_garden.mapview import MapMarkerPopup, Coordinate
 from kivymd.uix.bottomnavigation import MDBottomNavigation
 from kivymd.uix.bottomsheet import MDListBottomSheet
+from kivymd.uix.list import MDList, OneLineListItem
 import json
 
 from common import API_URL, SendRequest, TopScreenLoadingBar
@@ -87,30 +88,31 @@ class RouteFinding(InteractiveMap):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             if touch.is_double_tap:
-                if self.pinned_location is None:
-                    self.place_pin(self.get_latlon_at(touch.x, touch.y, self.zoom))
-                else:
-                    self.remove_pin()
+                self.place_pin(self.get_latlon_at(touch.x, touch.y, self.zoom))
 
         return super().on_touch_down(touch)
 
 
     def place_pin(self, coordinate: Coordinate):
+        if self.pinned_location is not None:
+            self.remove_pin()
+
         self.pinned_location = coordinate
-        self.pinned_location_pin = MapMarker(
+        self.pinned_location_pin = self.MapPin(
             lat=coordinate.lat,
             lon=coordinate.lon,
+            remove_callback=lambda _: self.remove_pin(),
         )
         self.add_widget(self.pinned_location_pin)
 
 
     def remove_pin(self):
-        if self.graphed_route is not None:
-            self.graphed_route = None
+        if len(self.graphed_route) > 0:
+            self.graphed_route = []
             self.canvas.remove(self.graph_line)
         
         self.pinned_location = None
-        self.remove_widget(self.pinned_location_pin)
+        self.remove_marker(self.pinned_location_pin)
 
 
     def request_directions(self):

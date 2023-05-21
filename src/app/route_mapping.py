@@ -129,36 +129,6 @@ class RouteMapping(InteractiveMap):
     confirm_route_button = ObjectProperty(None)
 
 
-    class RoutePin(MapMarkerPopup):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            self.remove_button = OneLineListItem(text="Remove")
-            self.remove_button.bind(on_release=self.remove_pin)
-
-            self.options = MDList(
-                md_bg_color="#000000"
-            )
-
-            self.options.add_widget(self.remove_button)
-            self.add_widget(self.options)
-
-            self.disabled = True
-            Clock.schedule_once(self.enable_input, 0.2)
-
-
-        def remove_pin(self, *args):
-            if self.parent.parent.waiting_for_route:
-                return
-            
-            self.parent.parent.pins.remove(self)
-            self.parent.parent.connect_all_pins()
-            self.parent.parent.remove_marker(self)      
-
-
-        def enable_input(self, *args):
-            self.disabled = False
-
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -231,6 +201,16 @@ class RouteMapping(InteractiveMap):
         self.confirmation_dialog.update_height(new_height)
         
 
+    def remove_pin(self, pin_button):
+        if self.waiting_for_route:
+            return
+
+        pin = pin_button.parent.parent.parent
+        self.pins.remove(pin)
+        self.connect_all_pins()
+        self.remove_marker(pin)
+
+
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             if touch.is_double_tap and not self.waiting_for_route:
@@ -242,9 +222,10 @@ class RouteMapping(InteractiveMap):
 
 
     def place_route_pin(self, coord: Coordinate):
-        route_pin = self.RoutePin(
+        route_pin = self.MapPin(
             lat=coord.lat,
             lon=coord.lon,
+            remove_callback=self.remove_pin,
         )
 
         self.pins.append(route_pin)                
