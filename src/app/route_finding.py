@@ -1,10 +1,9 @@
 from kivy.clock import Clock
 from kivy.lang.builder import Builder
 from kivy.properties import ObjectProperty
-from kivy_garden.mapview import MapMarkerPopup, Coordinate
+from kivy_garden.mapview import Coordinate
 from kivymd.uix.bottomnavigation import MDBottomNavigation
 from kivymd.uix.bottomsheet import MDListBottomSheet
-from kivymd.uix.list import MDList, OneLineListItem
 import json
 
 from common import API_URL, SendRequest, TopScreenLoadingBar
@@ -42,6 +41,7 @@ MDBottomNavigationItem:
             lon: 121.07339
             zoom: 15
             loading_bar: loading
+            directions_button: directions_button
 
         TopScreenLoadingBar:
             id: loading
@@ -49,17 +49,27 @@ MDBottomNavigationItem:
         SearchBar:
             map: map
 
+
+        MDFloatingActionButton:
+            id: directions_button
+            icon: "directions"
+            pos_hint: {"center_x": 0.875, "center_y": 0.32}
+            disabled: True
+            on_release:
+                map.request_directions()
+
         MDFloatingActionButton:
             icon: "crosshairs-gps"
-            pos_hint: {"center_x": 0.875, "center_y": 0.235}
+            pos_hint: {"center_x": 0.875, "center_y": 0.21}
             on_release:
                 map.follow_user()
 
+
         MDFloatingActionButton:
-            icon: "directions"
-            pos_hint: {"center_x": 0.875, "center_y": 0.125}
+            icon: "help"
+            pos_hint: {"center_x": 0.875, "center_y": 0.10}
             on_release:
-                map.request_directions() 
+                map.help_dialog.open() 
 '''
 
 
@@ -76,6 +86,9 @@ class NavBar(MDBottomNavigation):
 
 
 class RouteFinding(InteractiveMap):
+    directions_button = ObjectProperty(None)
+
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -105,6 +118,8 @@ class RouteFinding(InteractiveMap):
         )
         self.add_widget(self.pinned_location_pin)
 
+        self.directions_button.disabled = False
+
 
     def remove_pin(self):
         if len(self.graphed_route) > 0:
@@ -114,10 +129,11 @@ class RouteFinding(InteractiveMap):
         self.pinned_location = None
         self.remove_marker(self.pinned_location_pin)
 
+        self.directions_button.disabled = True
+
 
     def request_directions(self):
-        if self.pinned_location is not None:
-            self.get_origin_address()
+        self.get_origin_address()
 
 
     def get_origin_address(self):

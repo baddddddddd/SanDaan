@@ -1,11 +1,10 @@
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy_garden.mapview import MapMarkerPopup, Coordinate
+from kivy_garden.mapview import Coordinate
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
-from kivymd.uix.list import MDList, OneLineListItem
 from kivymd.uix.pickers import MDTimePicker
 from kivymd.uix.textfield import MDTextField
 import datetime
