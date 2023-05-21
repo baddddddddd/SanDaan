@@ -103,7 +103,7 @@ class RouteInformation(BoxLayout):
             on_release=self.show_end_time_picker,
         )
 
-        self.end_time_dialog = MDTimePicker(time=datetime.time.fromisoformat("00:00:00"))
+        self.end_time_dialog = MDTimePicker(time=datetime.time.fromisoformat("23:59:59"))
         self.add_widget(self.end_time_button)
 
 
@@ -322,6 +322,9 @@ class RouteMapping(InteractiveMap):
 
 
     def get_route_address(self, index):
+        # Disable the "OK" button to avoid sending multiple duplicate requests
+        self.confirmation_button.disabled = True
+
         # Get location by address all the nodes by using nominatim and the bounding box
         coord = self.graphed_route[index]
         self.get_address_by_location(Coordinate(coord[0], coord[1]), lambda _, result: self.check_bounds(result, index))
@@ -428,4 +431,7 @@ class RouteMapping(InteractiveMap):
         error_message = result.get("msg", "An unknown error occured.")
         content_cls = MDLabel(text=error_message)
         self.show_popup_dialog("Route upload failed", content_cls)
+
+        # Re-enable the "OK" button to allow reuploading the route
+        self.confirmation_button.disabled = False
         

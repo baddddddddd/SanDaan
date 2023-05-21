@@ -7,6 +7,7 @@ import datetime
 import json
 import math
 import mysql.connector
+import pytz
 import os
 
 import osmnx as ox
@@ -29,6 +30,9 @@ db = mysql.connector.connect(
 )
 
 cursor = db.cursor()
+
+# Set the timezone to Philippines
+ph_timezone = pytz.timezone('Asia/Manila')
 
 
 # Execute queries by force to handle cases where the database connection timed out
@@ -186,20 +190,21 @@ def get_center(points: list):
 @app.route("/route", methods=["POST"])
 @jwt_required()
 def get_route():
-    if request.method == "POST":
-        data = request.json
+    data = request.json
 
-        pins = data.get("pins", None)
+    pins = data.get("pins", None)
 
-        center = get_center(pins)
-        farthest_dist = 0
-        for coord in pins:
-            dist = get_distance(center, coord)
+    center = get_center(pins)
+    farthest_dist = 0
+    for coord in pins:
+        dist = get_distance(center, coord)
 
-            if dist > farthest_dist:
-                farthest_dist = dist
+        if dist > farthest_dist:
+            farthest_dist = dist
 
-        route_nodes = []
+    route_nodes = []
+
+    try:
         for coord in pins:
             graph = ox.graph_from_point(center, dist=farthest_dist * 1100, network_type="drive")
 
@@ -215,12 +220,15 @@ def get_route():
             path = nx.shortest_path(graph, route_nodes[-1], nearest_node, weight="distance")
 
             route_nodes += path[1:]
+    
+    except ValueError:
+        pass
 
-        route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
+    route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
 
-        return jsonify({
-            "route": route
-        })
+    return jsonify({
+        "route": route
+    })
     
 
 def fetch_id_or_insert(table, column, value):
@@ -324,6 +332,10 @@ def get_directions():
         if value is not None:
             condition = f" WHERE route_areas.{column}={value}"
             break
+
+    # Get the current time with the specified timezone
+    current_time = datetime.datetime.now(ph_timezone).strftime('%H:%M:%S')
+    condition += f" AND routes.start_time <= '{current_time}' AND routes.end_time >= '{current_time}'"
 
     columns = ", ".join([
         "routes.id",
