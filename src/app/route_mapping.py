@@ -245,10 +245,23 @@ class RouteMapping(InteractiveMap):
             body=body,
             loading_indicator=self.loading_bar,
             on_success=lambda _, result: self.connect_route(result),
+            on_failure=lambda _, result: self.remove_last_pin(result),
         )
 
         self.confirm_route_button.disabled = True
         self.waiting_for_route = True
+
+
+    def remove_last_pin(self, result):
+        self.show_popup_dialog(
+            "Failed to connect pins",
+            MDLabel(
+                text=result.get("msg", "An unknown error occured.")
+            ),
+        )
+
+        self.remove_marker(self.pins.pop())
+        self.waiting_for_route = False
 
 
     def connect_route(self, result):  

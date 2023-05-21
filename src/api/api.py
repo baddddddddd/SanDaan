@@ -220,15 +220,17 @@ def get_route():
             path = nx.shortest_path(graph, route_nodes[-1], nearest_node, weight="distance")
 
             route_nodes += path[1:]
+
+            route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
+
+            return jsonify(
+                route=route,
+            ), 200
     
-    except ValueError:
-        pass
-
-    route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in route_nodes]
-
-    return jsonify({
-        "route": route
-    })
+    except:
+        return jsonify(
+            msg="There is no path that connect the pins, try being more precise with the pins.",
+        ), 404
     
 
 def fetch_id_or_insert(table, column, value):
@@ -396,13 +398,18 @@ def get_directions():
 
     if start_walk is None or end_walk is None:
         return jsonify(
-            msg="No routes found.",
-        ), 404
+            start_walk=[],
+            end_walk=[],
+            routes=[],
+        ), 200 
     
     start = start_walk[-1]
     end = end_walk[0]
 
     routes = get_complete_routes(candidate_routes, start, end)
+
+    if routes is None:
+        routes = []
 
     return jsonify(
         start_walk=start_walk,

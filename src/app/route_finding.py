@@ -4,6 +4,7 @@ from kivy.properties import ObjectProperty
 from kivy_garden.mapview import Coordinate
 from kivymd.uix.bottomnavigation import MDBottomNavigation
 from kivymd.uix.bottomsheet import MDListBottomSheet
+from kivymd.uix.label import MDLabel
 import json
 
 from common import API_URL, SendRequest, TopScreenLoadingBar
@@ -42,6 +43,7 @@ MDBottomNavigationItem:
             zoom: 15
             loading_bar: loading
             directions_button: directions_button
+            steps_button: steps_button
 
         TopScreenLoadingBar:
             id: loading
@@ -49,7 +51,14 @@ MDBottomNavigationItem:
         SearchBar:
             map: map
 
-
+        MDFloatingActionButton:
+            id: steps_button
+            icon: "view-agenda"
+            pos_hint: {"center_x": 0.875, "center_y": 0.43}
+            disabled: True
+            on_release:
+                map.view_route_steps()
+                
         MDFloatingActionButton:
             id: directions_button
             icon: "directions"
@@ -87,6 +96,7 @@ class NavBar(MDBottomNavigation):
 
 class RouteFinding(InteractiveMap):
     directions_button = ObjectProperty(None)
+    steps_button = ObjectProperty(None)
 
 
     def __init__(self, **kwargs):
@@ -96,6 +106,10 @@ class RouteFinding(InteractiveMap):
         self.pinned_location_pin = None
 
         self.route_bottomsheet = MDListBottomSheet()
+
+        self.selected_route = None
+        self.start_walk = None
+        self.end_walk = None
 
 
     def on_touch_down(self, touch):
@@ -130,6 +144,7 @@ class RouteFinding(InteractiveMap):
         self.remove_marker(self.pinned_location_pin)
 
         self.directions_button.disabled = True
+        self.steps_button.disabled = True
 
 
     def request_directions(self):
@@ -190,29 +205,84 @@ class RouteFinding(InteractiveMap):
             url=url,
             body=body,
             on_success=lambda _, result: self.show_viable_routes(result), 
-            on_failure=self.handle_connection_error,
+            on_failure=lambda _, result: self.show_route_finding_error(result),
             loading_indicator=self.loading_bar,
         )
 
 
-    def show_viable_routes(self, result):
+    def show_viable_routes(self, result):        
         viable_routes = result["routes"]
+        start_walk = result["start_walk"]
+        end_walk = result["end_walk"]
+
+        if len(viable_routes) == 0:
+            self.show_popup_dialog(
+                title="No routes found",
+                content=MDLabel(
+                    text="There are currently no routes in the database that connects you to your destination, consider contributing! :D",
+                ),
+            )
+            return
+        
+        self.route_bottomsheet = MDListBottomSheet()
 
         for route_steps in viable_routes:
-            name = " + ".join([route["name"] for route in route_steps])
+            name = " + ".join([route_step["name"] for route_step in route_steps])
 
-            test_coords = []
-            for route in route_steps:
-                test_coords += route["coords"]
-            #test_coords = [route["coords"] for route in route_steps]
             self.route_bottomsheet.add_item(
                 text=f"{name}",
-                callback=lambda _, coords=test_coords: self.draw_route(coords),
+                callback=lambda _, route_steps=route_steps: self.select_route(route_steps, start_walk, end_walk),
             )
+
         self.route_bottomsheet.open()
 
 
-    def handle_connection_error(self, urlrequest, result):
-        print(urlrequest)
-        print(result)
-        print("Connection Error")
+    def view_route_steps(self):
+        self.route_bottomsheet = MDListBottomSheet()
+
+        if len(self.start_walk) > 1:
+            self.route_bottomsheet.add_item(
+                text=f"Walk from current location",
+                callback=lambda _, coords=self.start_walk: self.draw_route_step(coords),
+            )
+
+        for route in self.selected_route:
+            name = route["name"]
+            desc = route["description"]
+            uploader = route["uploader_id"]
+            coords = route["coords"]
+
+            self.route_bottomsheet.add_item(
+                text=f"{name}",
+                callback=lambda _, coords=coords: self.draw_route_step(coords),
+            )   
+
+        if len(self.end_walk) > 1:
+            self.route_bottomsheet.add_item(
+                text=f"Walk to destination",
+                callback=lambda _, coords=self.end_walk: self.draw_route_step(coords),
+            )         
+
+        self.route_bottomsheet.open()
+
+
+    def draw_route_step(self, coords):
+        self.remove_route()
+        self.draw_route(coords)
+
+
+    def select_route(self, route_steps, start_walk, end_walk):
+        self.start_walk = start_walk
+        self.end_walk = end_walk
+        self.selected_route = route_steps
+        self.steps_button.disabled = False
+        self.view_route_steps()
+
+
+    def show_route_finding_error(self, result):
+        self.show_popup_dialog(
+            title="Route finding error",
+            content=MDLabel(
+                text=result.get("msg", "An unknown error occured."),
+            ),
+        )
