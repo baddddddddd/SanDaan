@@ -133,7 +133,6 @@ class RouteMapping(InteractiveMap):
         
         self.remove_widget(self.current_location_pin)
         self.pins = []
-        self.graph_line = None
         self.waiting_for_route = False
        
         self.confirmation_button = MDFlatButton(

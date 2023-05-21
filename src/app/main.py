@@ -264,8 +264,6 @@ class MainApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
-
-        self.screen_manager.current = "mapview"
         
         self.cache = JsonStore("cache.json")
         Clock.schedule_once(lambda _: self.get_cache())
@@ -352,6 +350,7 @@ class MainApp(MDApp):
             on_success=lambda _, result: self.proceed_to_login(),
             on_failure=lambda _, result: self.show_signup_error(result),
             loading_indicator=self.signup_loading,
+            auto_refresh=False,
         )
 
 
@@ -392,6 +391,7 @@ class MainApp(MDApp):
             on_success=lambda _, result: self.show_main_screen(result),
             on_failure=lambda _, result: self.show_login_error(result),
             loading_indicator=self.login_loading,
+            auto_refresh=False,
         )
 
 
