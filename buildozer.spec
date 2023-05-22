@@ -45,10 +45,10 @@ requirements = python3,kivy,kivymd==1.1.1,plyer,bcrypt,pillow,openssl,requests,c
 garden_requirements = mapview
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/assets/logo.png
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = %(source.dir)s/assets/icon.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse

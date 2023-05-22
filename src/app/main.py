@@ -14,16 +14,49 @@ from common import SendRequest, TopScreenLoadingBar, API_URL, HEADERS, COMMON
 from route_finding import MAPVIEW_SCREEN
 
 
-# Kivy string to build layout and design of the welcome screen
-WELCOME_SCREEN = '''
+# Kivy string to build layout and design of the loading screen
+LOADING_SCREEN = '''
 MDScreen:
-    name: "welcome"
+    name: "loading"
     
     MDFloatLayout:
         TopScreenLoadingBar:
             id: loading
             on_parent:
                 app.cache_loading = loading
+
+        Image:
+            source: "assets/logo.png"
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .6}
+
+        MDLabel:
+            text: "For commuters, by commuters"
+            font_name: "MPoppins"
+            font_size: dp(16)
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .45}
+            halign: "center"
+'''
+
+# Kivy string to build layout and design of the welcome screen
+WELCOME_SCREEN = '''
+MDScreen:
+    name: "welcome"
+    
+    MDFloatLayout:
+        Image:
+            source: "assets/logo.png"
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .7}
+
+        MDLabel:
+            text: "For commuters, by commuters"
+            font_name: "MPoppins"
+            font_size: dp(16)
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .55}
+            halign: "center"
 
         MDFillRoundFlatButton:
             text: "LOG IN"
@@ -263,6 +296,7 @@ class MainApp(MDApp):
 
         # Use a screen manager from kivy to allow changing screens
         self.screen_manager = ScreenManager()
+        self.screen_manager.add_widget(Builder.load_string(LOADING_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
@@ -303,8 +337,11 @@ class MainApp(MDApp):
             SendRequest(
                 url=url,
                 on_success=lambda _, result: self.skip_login(),
+                on_failure=lambda _, result: self.proceed_to_welcome(),
                 loading_indicator=self.cache_loading,
             )
+        else:
+            self.proceed_to_welcome()
 
 
     # Called when the tokens from cache are still valid, letting the user skip the login screen
@@ -315,6 +352,14 @@ class MainApp(MDApp):
         }
 
         self.show_main_screen(result)
+
+
+    # Called when there is no cache or token is no longer valid
+    def proceed_to_welcome(self):
+        # Change the current screen to the welcome screen
+        self.screen_manager.transition.direction = "left"
+        self.screen_manager.transition.duration = 0.3
+        self.screen_manager.current = "welcome"
 
 
     # Called when user submits their information for signing up through the sign up screen
