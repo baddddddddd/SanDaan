@@ -14,6 +14,7 @@ from common import SendRequest, TopScreenLoadingBar, API_URL, HEADERS, COMMON
 from route_finding import MAPVIEW_SCREEN
 
 
+# Kivy string to build layout and design of the welcome screen
 WELCOME_SCREEN = '''
 MDScreen:
     name: "welcome"
@@ -49,6 +50,7 @@ MDScreen:
                 root.manager.current = "signup"
 '''
 
+# Kivy string to build layout and design of the login screen
 LOGIN_SCREEN = '''
 MDScreen:
     name: "login"
@@ -130,6 +132,7 @@ MDScreen:
             color: "#FF0000"
 '''
 
+# Kivy string to build layout and design of the signup screen
 SIGNUP_SCREEN = '''
 MDScreen:
     name: "signup"
@@ -242,32 +245,30 @@ MDScreen:
                 app.create_account(username, email, password, confirm_password)
 '''
 
-# Finding jeepney routes algorithm
-# 1. Find nearest node of initial location
-# 2. Find shortest path to nearest jeepney stop from initial location node
-# 3. Find nearest node of target location
-# 4. Find shortest path to nearest jeepney stop from target location node
-# 5. Determine the vicinity of two location nodes
-# 6. Fetch all the routes that is inside the vicinity
-# 7. Find routes that contain both the nodes of jeepney stops
 
+# Class to define the application root and building instructions
 class MainApp(MDApp):
+    # Called when the app starts running
     def build(self):
+        # Set the theme of the app
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Cyan"
         
+        # Variables to store the loading bars of the app
         self.login_loading = None
         self.signup_loading = None
         self.login_warning = None
         self.signup_warning = None
         self.cache_loading = None
 
+        # Use a screen manager from kivy to allow changing screens
         self.screen_manager = ScreenManager()
         self.screen_manager.add_widget(Builder.load_string(WELCOME_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(LOGIN_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         
+        # Request permission to use storage for android devices to be used for caching
         if platform == "android":
             from android.permissions import request_permissions, Permission
             from android.storage import app_storage_path
@@ -278,6 +279,7 @@ class MainApp(MDApp):
         else:
             cache_dir = "."
 
+        # Get the cache once the app has finished building
         cache_file = os.path.join(cache_dir, "cache.json")
         self.cache = JsonStore(cache_file)
         Clock.schedule_once(lambda _: self.get_cache())
@@ -285,6 +287,8 @@ class MainApp(MDApp):
         return self.screen_manager
     
     
+    # Gets the authorization tokens from the cache file so that user does not have to
+    # log in to the app every time
     def get_cache(self):
         if self.cache.exists("authorization"):
             access_token = self.cache.get("authorization").get("access_token", None)
@@ -303,6 +307,7 @@ class MainApp(MDApp):
             )
 
 
+    # Called when the tokens from cache are still valid, letting the user skip the login screen
     def skip_login(self):
         result = {
             "access_token": COMMON["ACCESS_TOKEN"],
@@ -312,6 +317,7 @@ class MainApp(MDApp):
         self.show_main_screen(result)
 
 
+    # Called when user submits their information for signing up through the sign up screen
     def create_account(self, username, email, password, confirm_password):
         # Check if any of the fields is empty
         fields = [username, email, password, confirm_password]
@@ -368,6 +374,7 @@ class MainApp(MDApp):
         )
 
 
+    # Called when account was successfully created
     def proceed_to_login(self):
         # Change the current screen to the login screen
         self.screen_manager.transition.direction = "left"
@@ -375,12 +382,14 @@ class MainApp(MDApp):
         self.screen_manager.current = "login"
 
 
+    # Called when account creation failed. Shows the user what went wrong
     def show_signup_error(self, result):
-        # Give the user an idea what went wrong
+        # Change the label text in the UI to contain the error message
         error_message = result.get("msg", None)
         self.signup_warning.text = error_message if error_message is not None else "Something went wrong"
 
 
+    # Called when user submits their login credentials through the login screen
     def verify_login(self, username, password):
         # Validate input before sending to API
         if username.text == "":
@@ -409,7 +418,9 @@ class MainApp(MDApp):
         )
 
 
+    # Called when login was successful. Shows the main screen of the app
     def show_main_screen(self, result):
+        # Obtain the authorization tokens from the cache or from the server
         access_token = result.get("access_token")
         refresh_token = result.get("refresh_token")
 
@@ -420,7 +431,7 @@ class MainApp(MDApp):
             refresh_token=refresh_token,
         )
 
-        # Set authorization header and save user id
+        # Set authorization header and save the tokens to the app
         HEADERS["Authorization"] = f"Bearer {access_token}"
         COMMON["ACCESS_TOKEN"] = access_token
         COMMON["REFRESH_TOKEN"] = refresh_token
@@ -431,18 +442,22 @@ class MainApp(MDApp):
         self.screen_manager.current = "mapview"
 
 
+    # Called when login failed and shows the user what went wrong
     def show_login_error(self, result):
-        # Give the user an idea what went wrong
+        # Change the label text that shows errors to contain the error message
         error_message = result.get("msg", None)
         self.login_warning.text = error_message if error_message is not None else "Something went wrong"
 
 
 if __name__ == "__main__":
-    if __debug__:
+    # Set a specific window size for non-android devices for development purposes
+    if platform != "android":
         from kivy.core.window import Window
         Window.size = (360, 720)
 
+    # Register fonts to kivy so that it can be used for design
     LabelBase.register(name="MPoppins", fn_regular=r"fonts/Poppins/Poppins-Medium.ttf")
     LabelBase.register(name="BPoppins", fn_regular=r"fonts/Poppins/Poppins-SemiBold.ttf")
 
+    # Runs the app
     MainApp().run()
