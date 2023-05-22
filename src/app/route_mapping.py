@@ -78,7 +78,6 @@ class RouteInformation(BoxLayout):
         )
         self.name_field.bind(text=lambda *_: self.check_complete())
         self.add_widget(self.name_field)
-        self.name_field.padding = [0, 8, 0, 8]
 
         self.desc_field = MDTextField(
             hint_text="Route description",
@@ -161,7 +160,7 @@ class RouteMapping(InteractiveMap):
         self.route_addresses = []
     
         tutorial_message = '''1. Place pins (double tap) to trace the path that the transport route takes
-2. To remove a pin, tap on the pin and select "Remove"
+2. To remove a pin, tap on the pin and click the delete icon
 3. Please wait for the route to be processed every time you place or remove a pin (indicated by a loading bar on the top of your screen)
 4. If done mapping, press the Check button to confirm the route.
 5. For the route name, enter the "cards" that commuters would see in jeepneys or buses (such as "North Bayan" or "Alangilan" or "G. terminal")
@@ -418,6 +417,7 @@ class RouteMapping(InteractiveMap):
 
         # Clear route information
         self.route_information = RouteInformation(self.confirmation_button)
+        self.confirm_route_button.disabled = True
 
 
     def handle_upload_failure(self, result):

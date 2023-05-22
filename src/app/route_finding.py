@@ -119,7 +119,7 @@ class RouteFinding(InteractiveMap):
 4. After selecting a route combination, a list of individual transport routes will be shown, select these routes one by one to view the route in the map.
 5. To go back to the list of individual transport routes, click the "View Panel" (two rectangles) button 
 6. To change target destination, double tap again anywhere on the map.
-7. To remove a pin, click on the pin then select "Remove"
+7. To remove a pin, click on the pin then click on the delete icon
 '''
 
         def disable_focus():

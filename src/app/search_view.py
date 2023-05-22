@@ -12,6 +12,7 @@ SEARCH_BAR = '''
     mode: "round"
     size_hint: 0.9, None
     pos_hint: {"center_x": 0.5, "top": 0.98}
+    font_size: dp(16)
     icon_left: "magnify"
     on_text_validate: 
         self.map.search_location(self.text, lambda _, result: self.display_results(result))
@@ -26,7 +27,6 @@ SEARCH_RESULTS = '''
     MDList:
         id: search_list
         md_bg_color: (0, 0, 0, 0)
-
 '''
 
 class SearchBar(MDTextField):

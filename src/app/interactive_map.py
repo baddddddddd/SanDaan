@@ -1,9 +1,10 @@
 from kivy.clock import Clock
 from kivy.graphics import Line, Color
+from kivy.metrics import dp
 from kivy.properties import ObjectProperty
 from kivy.utils import platform
 from kivy_garden.mapview import MapView, MapMarker, MapMarkerPopup, Coordinate
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import MDList, OneLineListItem
 from plyer import gps
@@ -23,15 +24,15 @@ class InteractiveMap(MapView):
     class MapPin(MapMarkerPopup):
         def __init__(self, lat, lon, remove_callback):
             super().__init__(lat=lat, lon=lon)
-            self.remove_button = OneLineListItem(text="Remove")
+            self.remove_button = MDIconButton(
+                icon="delete",
+                icon_size=dp(36),
+                theme_icon_color="Custom",
+                icon_color="black",
+            )
             self.remove_button.bind(on_release= lambda obj: remove_callback(obj))
 
-            self.options = MDList(
-                md_bg_color="#000000"
-            )
-
-            self.options.add_widget(self.remove_button)
-            self.add_widget(self.options)
+            self.add_widget(self.remove_button)
 
             self.disabled = True
             Clock.schedule_once(lambda *_: self.enable_input(), 0.2)
@@ -83,9 +84,9 @@ class InteractiveMap(MapView):
             instance.current_location_pin.lon = kwargs["lon"]
 
         # Centralize map on the current location of the user once the GPS has initialized
-        if not InteractiveMap.has_initialized_gps:
+        if not InteractiveMap.has_initialized_gps and len(InteractiveMap.instances) == 2:
             InteractiveMap.has_initialized_gps = True
-            
+
             for instance in InteractiveMap.instances:
                 instance.centralize_map_on(InteractiveMap.current_location)
                 instance.zoom = 15
