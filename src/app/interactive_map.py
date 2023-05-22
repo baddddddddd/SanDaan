@@ -14,6 +14,10 @@ from common import API_URL, HEADERS, SendRequest
 
 class InteractiveMap(MapView):
     loading_bar = ObjectProperty(None)
+    current_location = Coordinate(13.78530, 121.07339)
+    has_initialized_gps = False
+
+    instances = []
 
 
     class MapPin(MapMarkerPopup):
@@ -45,14 +49,11 @@ class InteractiveMap(MapView):
         super().__init__(**kwargs)
 
         # Default location, which is Batangas State University - Alangilan, coordinate if GPS is not available
-        self.current_location = Coordinate(13.78530, 121.07339)
         self.current_location_pin = MapMarker(
             lat=13.78530,
             lon=121.07339,
         )
         self.add_widget(self.current_location_pin)
-
-        self.has_initialized_gps = False
 
         # Request permission for accessing GPS in Android devices
         if platform == "android":
@@ -60,13 +61,34 @@ class InteractiveMap(MapView):
 
             request_permissions([Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION])
             
-            gps.configure(on_location=lambda **kwargs: self.update_location(kwargs))
+            gps.configure(on_location=lambda **kwargs: InteractiveMap.update_location(kwargs))
             gps.start()
 
         self.graphed_route = []
         self.graph_line = None
 
         self.main_dialog = MDDialog()
+        
+        InteractiveMap.instances.append(self)
+
+
+    # Function to call every time the GPS updates
+    def update_location(kwargs):
+        # Update the user's current location with the provided info by the GPS
+        InteractiveMap.current_location = Coordinate(kwargs["lat"], kwargs["lon"])
+
+        # Change the user's location pin to new coordinates for all instances of the map
+        for instance in InteractiveMap.instances:
+            instance.current_location_pin.lat = kwargs["lat"]
+            instance.current_location_pin.lon = kwargs["lon"]
+
+        # Centralize map on the current location of the user once the GPS has initialized
+        if not InteractiveMap.has_initialized_gps:
+            InteractiveMap.has_initialized_gps = True
+            
+            for instance in InteractiveMap.instances:
+                instance.centralize_map_on(InteractiveMap.current_location)
+                instance.zoom = 15
 
 
     def on_touch_move(self, touch):
@@ -89,17 +111,6 @@ class InteractiveMap(MapView):
     def follow_user(self):
         self.centralize_map_on(self.current_location)
         self.zoom = 15
-
-
-    def update_location(self, kwargs):
-        if not self.has_initialized_gps:
-            self.has_initialized_gps = True
-            self.current_location = Coordinate(kwargs["lat"], kwargs["lon"])
-            self.centralize_map_on(self.current_location)
-            self.zoom = 15
-
-        self.current_location_pin.lat = kwargs["lat"]
-        self.current_location_pin.lon = kwargs["lon"]
 
 
     def redraw_route(self):
