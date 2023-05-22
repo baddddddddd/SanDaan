@@ -3,9 +3,12 @@ from kivy.core.text import LabelBase
 from kivy.lang import Builder
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager
+from kivy.utils import platform
 from kivymd.app import MDApp
+
 import json
 import re
+import os
 
 from common import SendRequest, TopScreenLoadingBar, API_URL, HEADERS, COMMON
 from route_finding import MAPVIEW_SCREEN
@@ -265,7 +268,18 @@ class MainApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(SIGNUP_SCREEN))
         self.screen_manager.add_widget(Builder.load_string(MAPVIEW_SCREEN))
         
-        self.cache = JsonStore("cache.json")
+        if platform == "android":
+            from android.permissions import request_permissions, Permission
+            from android.storage import app_storage_path
+
+            request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
+            
+            cache_dir = app_storage_path()
+        else:
+            cache_dir = "."
+
+        cache_file = os.path.join(cache_dir, "cache.json")
+        self.cache = JsonStore(cache_file)
         Clock.schedule_once(lambda _: self.get_cache())
 
         return self.screen_manager
