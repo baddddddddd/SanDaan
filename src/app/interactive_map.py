@@ -6,7 +6,6 @@ from kivy.utils import platform
 from kivy_garden.mapview import MapView, MapMarker, MapMarkerPopup, Coordinate
 from kivymd.uix.button import MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.list import MDList, OneLineListItem
 from plyer import gps
 from urllib import parse
 
@@ -72,6 +71,10 @@ class InteractiveMap(MapView):
         
         InteractiveMap.instances.append(self)
 
+        if InteractiveMap.has_initialized_gps:
+            self.centralize_map_on(InteractiveMap.current_location)
+            self.zoom = 15
+
 
     # Function to call every time the GPS updates
     def update_location(kwargs):
@@ -84,7 +87,7 @@ class InteractiveMap(MapView):
             instance.current_location_pin.lon = kwargs["lon"]
 
         # Centralize map on the current location of the user once the GPS has initialized
-        if not InteractiveMap.has_initialized_gps and len(InteractiveMap.instances) == 2:
+        if not InteractiveMap.has_initialized_gps:
             InteractiveMap.has_initialized_gps = True
 
             for instance in InteractiveMap.instances:
