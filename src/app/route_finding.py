@@ -153,6 +153,8 @@ class RouteFinding(InteractiveMap):
             ],
         )
 
+        self.viable_routes = None
+
 
     # Called when user touches the screen
     def on_touch_down(self, touch):
@@ -188,6 +190,8 @@ class RouteFinding(InteractiveMap):
 
     # Called when user clicks the "Delete" button of map pins
     def remove_pin(self):
+        self.viable_routes = None
+
         # Check if there is a graphed route associated with the pin
         # If yes, remove the graphed route
         if len(self.graphed_route) > 0:
@@ -205,6 +209,10 @@ class RouteFinding(InteractiveMap):
 
     # Called when the user clicks the "Get Directions" button
     def request_directions(self):
+        if self.viable_routes is not None:
+            self.show_results()
+            return
+
         self.get_origin_address()
 
 
@@ -289,12 +297,12 @@ class RouteFinding(InteractiveMap):
     # Called when successfully fetched directions from the SanDaan API
     def show_viable_routes(self, result):   
         # Get the results from the HTTP request     
-        viable_routes = result["routes"]
-        start_walk = result["start_walk"]
-        end_walk = result["end_walk"]
+        self.viable_routes = result["routes"]
+        self.start_walk = result["start_walk"]
+        self.end_walk = result["end_walk"]
 
         # Check if there was any routes found, if none, show a dialog message notifying the user
-        if len(viable_routes) == 0:
+        if len(self.viable_routes) == 0:
             self.show_popup_dialog(
                 title="No routes found",
                 content=MDLabel(
@@ -303,18 +311,22 @@ class RouteFinding(InteractiveMap):
             )
             return
         
+        self.show_results()
+
+
+    def show_results(self):
         # Create a widget for displaying the results
         self.route_bottomsheet = MDListBottomSheet()
 
         # Iterate each route combination from the result
-        for route_steps in viable_routes:
+        for route_steps in self.viable_routes:
             # Create a string to display the names of the route combination
             name = " + ".join([route_step["name"] for route_step in route_steps])
 
             # Add the route combination in list of results
             self.route_bottomsheet.add_item(
                 text=f"{name}",
-                callback=lambda _, route_steps=route_steps: self.select_route(route_steps, start_walk, end_walk),
+                callback=lambda _, route_steps=route_steps: self.select_route(route_steps),
             )
 
         self.route_bottomsheet.open()
@@ -322,9 +334,7 @@ class RouteFinding(InteractiveMap):
 
     # Called when the user selects a route combination
     # Remembers the selected route combination of the user
-    def select_route(self, route_steps, start_walk, end_walk):
-        self.start_walk = start_walk
-        self.end_walk = end_walk
+    def select_route(self, route_steps):
         self.selected_route = route_steps
         self.steps_button.disabled = False
         self.view_route_steps()
