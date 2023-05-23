@@ -75,9 +75,9 @@ Currently, there is a lack of tools that use information about the schedules, ro
 
 ## 🌱 Purpose
 
-The primary objective of this project is to help people by developing a mobile-based application that promotes the use of efficient and environmentally-friendly public transportation routes. This will be accomplished by providing accurate and real-time information on public transportation schedules, routes, and various options available to commuters. The app will enable users to easily search for transportation options based on their location, destination, and travel time preferences. Additionally, a community-driven system will be incorporated into the app, allowing users to share their preferred routes based on previous travels and preferences, and make them accessible to other users.
+The primary objective of this project is to help people with the developed mobile-based application that promotes the use of efficient and environmentally-friendly public transportation routes. This will be accomplished by providing accurate and real-time information on public transportation schedules, routes, and various options available to commuters. The app will enable users to easily search for transportation options based on their location, destination, and travel time preferences. Additionally, a community-driven system will be incorporated into the app, allowing users to share their preferred routes based on previous travels and preferences, and make them accessible to other users.
 
-This system is expected to not only make public transportation more accessible and efficient for users but also encourage more individuals to contribute to this feature and keep the project relevant over an extended period. By promoting sustainable transportation options, the project will contribute towards achieving the Sustainable Development Goals (SDGs), particularly SDG 11, which emphasizes making cities and human settlements more inclusive, safe, resilient, and sustainable. Ultimately, the mobile application will help people choose the best transportation options, reduce travel time and cost, and minimize the environmental impact of public transportation.
+This system makes public transportation more accessible and efficient for users but also encourage more individuals to contribute to this feature and keep the project relevant over an extended period. By promoting sustainable transportation options, the project will contribute towards achieving the Sustainable Development Goals (SDGs), particularly SDG 11, which emphasizes making cities and human settlements more inclusive, safe, resilient, and sustainable. Ultimately, the mobile application will help people choose the best transportation options, reduce travel time and cost, and minimize the environmental impact of public transportation.
 
 <hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
@@ -107,9 +107,9 @@ This system is expected to not only make public transportation more accessible a
 
 <hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
-## 📋 Planned Features
+## 📋 Features
 
-The mobile app will have features that mainly aim to make commuting more convenient for commuters Specifically, the app will have the following features:
+The mobile app have features that mainly aim to make commuting more convenient for commuters. Specifically, the app will have the following features:
 
 * 📱 Available on Android devices
 
@@ -121,7 +121,7 @@ The mobile app will have features that mainly aim to make commuting more conveni
 
 * 🚌 Contains information on transport vehicle routes and schedules
 
-* 👨‍👩‍👧‍👦 Community-powered: users can share transport routes and update transport vehicle schedules for other users to see
+* 👨‍👩‍👧‍👦 Users can share transport routes and update transport vehicle schedules for other users to see
 
 <hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
