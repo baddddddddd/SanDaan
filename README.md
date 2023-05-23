@@ -13,7 +13,7 @@
     <a href="https://github.com/VinnRe">Capinpin, Kobe Andrew</a> <br>
     <a href="https://github.com/oocim">Cuarto, Mico Raphael</a> <br>
     <a href="https://github.com/baddddddddd">Jocson, Vladimir</a> <br>
-    <a href-"https://github.com/Exuille">Penuliar, Alexander Guile</a>
+    <a href="https://github.com/Exuille">Penuliar, Alexander Guile</a>
   </p>
   <br>
 </div>
@@ -33,6 +33,7 @@
     <li><a href="#-planned-features">Planned Features</a></li>
     <li><a href="#-technical-requirements">Technical Requirements</a></li>
     <li><a href="#-scope-of-the-project">Scope of the Project</a></li>
+    <li><a href="##running-the-app">Developer Section</a></li>
   </ol>
 </details>
 
