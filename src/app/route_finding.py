@@ -21,8 +21,6 @@ MAPVIEW_SCREEN = '''
 #:import MapView kivy_garden.mapview.MapView
 
 <NavBar>:
-    #panel_color: "#eeeaea"
-    selected_color_background: "orange"
     text_color_active: "lightgrey"
 
 

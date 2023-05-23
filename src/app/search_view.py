@@ -46,6 +46,9 @@ class SearchBar(MDTextField):
     # Called when search results were successfully fetched
     def display_results(self, result):
         # Add the widget to the screen
+        if self.search_view is not None:
+            self.clear_results()
+
         self.search_view = SearchResults()
         self.parent.add_widget(self.search_view)
 
@@ -54,7 +57,7 @@ class SearchBar(MDTextField):
             # Create a list item that shows each result
             item = OneLineListItem(
                 text=res['display_name'],
-                bg_color=(0, 0, 1, 0.6),
+                bg_color=(0.1, 0.1, 0.1, 1),
                 on_release=lambda _, lat=float(res['lat']), lon=float(res['lon']): (
                     self.clear_results(), 
                     self.map.centralize_map_on(Coordinate(lat, lon))
