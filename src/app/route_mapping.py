@@ -357,7 +357,7 @@ class RouteMapping(InteractiveMap):
             body=body,
             loading_indicator=self.loading_bar,
             on_success=lambda _, result: self.redraw_all(result),
-            on_failure=lambda _, result: self.undo_pin_remove(),
+            on_failure=lambda _, result: self.undo_pin_remove(result),
         )
         
         # Disable the "Confirm Route" button and set the flag that the app is waiting for response
