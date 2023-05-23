@@ -42,7 +42,7 @@ TOP_SCREEN_LOADING_BAR = '''
 '''
 
 # Timeout timer in seconds
-TIMEOUT = 10
+TIMEOUT = 300
 
 
 # Bring the widget that will be built in the kivy string to python itself

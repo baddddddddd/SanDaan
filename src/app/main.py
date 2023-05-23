@@ -329,7 +329,7 @@ class MainApp(MDApp):
             refresh_token = self.cache.get("authorization").get("refresh_token", None)
             COMMON["ACCESS_TOKEN"] = access_token
             COMMON["REFRESH_TOKEN"] = refresh_token
-
+            
             # Check if token is still valid and user id still exists
             url = f"{API_URL}/verify"
             HEADERS["Authorization"] = f"Bearer {access_token}"

@@ -39,6 +39,7 @@ MDBottomNavigationItem:
             zoom: 15
             loading_bar: loading
             confirm_route_button: confirm_route_button
+            app: app
 
         TopScreenLoadingBar:
             id: loading
@@ -142,6 +143,7 @@ class RouteInformation(BoxLayout):
 class RouteMapping(InteractiveMap):
     # Store reference to the "Confirm Route" button
     confirm_route_button = ObjectProperty(None)
+    app = ObjectProperty(None)
 
 
     def __init__(self, **kwargs):
@@ -221,6 +223,29 @@ class RouteMapping(InteractiveMap):
             ],
         )
 
+        Clock.schedule_once(lambda _: self.on_widget_built(), 0)
+
+
+    def on_widget_built(self):
+        # Recover mapped route on crash
+        if self.app.cache.exists("backup"):
+            pin_coords = self.app.cache.get("backup").get("pins", [])
+            self.graphed_route = self.app.cache.get("backup").get("route", [])
+
+            for pin_coord in pin_coords:
+                # Places the pin on the map
+                route_pin = self.MapPin(
+                    lat=pin_coord[0],
+                    lon=pin_coord[1],
+                    remove_callback=self.remove_pin,
+                )
+
+                self.pins.append(route_pin)                
+                self.add_widget(route_pin)
+
+            if len(self.graphed_route) > 1:
+                self.draw_route(self.graphed_route)
+
 
     # Update the dialog height depending on the height of its children so that it all fits inside
     def update_dialog_height(self, *args):
@@ -265,6 +290,13 @@ class RouteMapping(InteractiveMap):
 
     # Place pin on the map and connect to the previous pin
     def place_route_pin(self, coord: Coordinate):
+        # Cache current list of pins in case of crash
+        self.app.cache.put(
+            key="backup",
+            pins=[[pin.lat, pin.lon] for pin in self.pins],
+            route=self.graphed_route,
+        )
+        
         # Places the pin on the map
         route_pin = self.MapPin(
             lat=coord.lat,
@@ -512,6 +544,12 @@ class RouteMapping(InteractiveMap):
 
     # Called when uploading the route succeeded
     def handle_upload_success(self, result):
+        # Clear backup of pins and route
+        try:
+            self.app.cache.delete("backup")
+        except KeyError:
+            pass
+
         # Show dialog that the upload is success
         self.confirmation_dialog.dismiss()
         success_message = result.get("msg", "")
