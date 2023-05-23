@@ -128,17 +128,21 @@ The mobile app will have features that mainly aim to make commuting more conveni
 
 To speed up and improve the development of the mobile application, the developers will use various tools. These include:
 
-* [**Python**](https://www.python.org/) - a high-level, general-purpose programming language. This will be used to program the logic for the application.
+* [**Python**](https://www.python.org/) - a high-level, general-purpose programming language. This is used to program the logic for the application.
 
-* [**Kivy**](https://kivy.org/) - a cross-platform Python application development framework. This will be used to create an application that can run in android.
+* [**Kivy**](https://kivy.org/) - a cross-platform Python application development framework. This is used to create an application that can run in android.
 
-* [**OpenStreetMap**](https://www.openstreetmap.org/) - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This will be used to obtain map data such as names of places and routes through its API.
+* [**Flask**](https://flask.palletsprojects.com/) - a python web framework for developing static web pages. This is used to create the RESTful API for the project to handle all computation-heavy tasks.
 
-* [**MySQL**](https://www.mysql.com/) - an open-source relational database management system. This will be used to store the information about the routes and places as well as the transport schedules shared by users.
+* [**OpenStreetMap**](https://www.openstreetmap.org/) - a free, open geographic database updated and maintained by a community of volunteers via open collaboration. This is used to obtain map data such as names of places and routes through its API.
 
-* [**Conda**](https://conda.io/) - an open-source, cross-platform, language-agnostic package manager and environment management system. This will be used to ensure that the developers of the project work on the same virtual environment with the same modules with the same exact versions.
+* [**MySQL**](https://www.mysql.com/) - an open-source relational database management system. This is used to store the information about the routes and places as well as the transport schedules shared by users.
 
-* [**GitHub**](https://github.com/) - an Internet hosting service for software development and version control using Git. This will be used to make collaboration more convenient for the developers of the project.
+* [**Docker**](https://www.docker.com/) - a software platform that allows developers to build, test, and deploy applications quickly. It ensures that the application running in one machine will run on all the other machines. This is used to containerize the API application so that the developers can deploy it to the server online.
+
+* [**Linux**](https://www.linux.org/) - a family of open-source Unix-like operating systems based on the Linux kernel, an operating system kernel. This is used to run the API server locally and natively as well as for building the Android app from source.
+
+* [**GitHub**](https://github.com/) - an Internet hosting service for software development and version control using Git. This is used to make collaboration more convenient for the developers of the project.
 
 <hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
