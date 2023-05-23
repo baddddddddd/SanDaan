@@ -10,10 +10,10 @@
   </h3>
   <p align="center">
     <b>CS-1202</b> <br>
-    Capinpin, Kobe Andrew <br>
-    Cuarto, Mico Raphael <br>
-    Jocson, Vladimir <br>
-    Penuliar, Alexander Guile
+    <a href="https://github.com/VinnRe">Capinpin, Kobe Andrew</a> <br>
+    <a href="https://github.com/oocim">Cuarto, Mico Raphael</a> <br>
+    <a href="https://github.com/baddddddddd">Jocson, Vladimir</a> <br>
+    <a href-"https://github.com/Exuille">Penuliar, Alexander Guile</a>
   </p>
   <br>
 </div>
