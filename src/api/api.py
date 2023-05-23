@@ -39,12 +39,12 @@ cursor = db.cursor()
 ph_timezone = pytz.timezone('Asia/Manila')
 
 # Execute queries by force to handle cases where the database connection timed out
-def execute_query(query, params = tuple(), force=True):
-    if force:
+def execute_query(query, params = tuple(), force=True, count=0):
+    if force and count < 3:
         try:
             cursor.execute(query, params)
         except DatabaseError:
-            execute_query(query, params, True)
+            execute_query(query, params, True, count + 1)
     else:
         cursor.execute(query, params)
 
@@ -430,7 +430,7 @@ def get_directions():
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
         destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
         
-        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+        path = nx.shortest_path(graph, origin_node, destination_node, weight="length")
         shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
         # Using the shortest path computed, get the route that the user must walk
@@ -478,7 +478,7 @@ def get_directions():
     except:
         return jsonify(
             msg="There is no route that connects your current and target location",
-        ), 200
+        ), 404
 
 
 # Helper function for obtaining all the route combinations that connect the user's location to the destination 
@@ -486,31 +486,23 @@ def get_complete_routes(candidate_routes, start, end):
     complete_routes = []
 
     # Get all the route combinations that pass through the starting node and ending node
-    start_routes = {}
-    end_routes = {}
+    start_routes = []
+    end_routes = []
 
     for candidate_route in candidate_routes:
         for i, coord in enumerate(candidate_route["coords"]):
             if start == coord:
                 route = candidate_route.copy()
                 route["coords"] = route["coords"][i:]
-                
-                id = route["id"]
-                existing_route = start_routes.get(id, None)
-                if existing_route is None or len(route["coords"]) < len(existing_route["coords"]):
-                    start_routes[id] = route
+                start_routes.append(route)
 
             if end == coord:
                 route = candidate_route.copy()
                 route["coords"] = route["coords"][:i + 1]
-                
-                id = route["id"]
-                existing_route = end_routes.get(id, None)
-                if existing_route is None or len(route["coords"]) < len(existing_route["coords"]):
-                    end_routes[id] = route
+                end_routes.append(route)
     
     # Handle cases where one transport vehicle is already enough to get to destination
-    for start_route in start_routes.values():
+    for start_route in start_routes:
         # Iterate each coordinates of routes that pass through the starting node
         # then check if one of them also happens to be the ending node
         for i, coord in enumerate(start_route["coords"]):
@@ -528,8 +520,8 @@ def get_complete_routes(candidate_routes, start, end):
 
     # Create network of route combinations that stem from the starting and ending node
     # Additionally, store all the candidate routes as one whole network
-    start_network = [[route] for route in start_routes.values()]
-    end_network = [[route] for route in end_routes.values()]
+    start_network = [[route] for route in start_routes]
+    end_network = [[route] for route in end_routes]
     full_network = [[route] for route in candidate_routes]
 
     # Limit the size of the networks to only 5 to avoid overloading the server ram and cpu
@@ -554,43 +546,50 @@ def get_complete_routes(candidate_routes, start, end):
             
     
 # Helper function for obtaining all the connected routes from two sets of unique routes
-def get_connected_routes(group_a: list, group_b: list):
+def get_connected_routes(network_a: list, network_b: list):
     results = []
 
-    # Pair each route from both network of routes
-    for route_a in group_a:
-        for route_b in group_b:
+    # Pair each route combination from both network of routes
+    for leg_a in network_a:
+        for leg_b in network_b:
             connected = False
 
-            # Avoid creating looping routes
-            for route_a_step in route_a:
-                for route_b_step in route_b:
-                    if route_a_step["id"] == route_b_step["id"]:
-                        continue
+            # Get the connecting ends of both networks
+            end_a = leg_a[-1]
+            end_b = leg_b[0]
 
-            # Only get the coordinates of the ending route of each network
-            route_a_coords = route_a[-1]["coords"]
-            route_b_coords = route_b[0]["coords"]
+            # Do not check same routes
+            if end_a["id"] == end_b["id"]:
+                continue
+
+            # Get the coordinates of the connecting ends
+            end_a_coords = end_a["coords"]
+            end_b_coords = end_b["coords"]
 
             # Find the earliest possible intersection between the two routes by finding
             # intersecting coordinates from both routes sequentially
-            for i, coord_a in enumerate(route_a_coords):
-                for j, coord_b in enumerate(route_b_coords):
+            for i, coord_a in enumerate(end_a_coords):
+                for j, coord_b in enumerate(end_b_coords):
                     if coord_a == coord_b:
                         # Copy the routes to avoid modification of original routes
-                        sliced_route_a = route_a[-1].copy()
-                        sliced_route_b = route_b[0].copy()
+                        sliced_end_a = end_a.copy()
+                        sliced_end_b = end_b.copy()
 
                         # Slice the route based on where they intersected
-                        sliced_route_a["coords"] = route_a_coords[:i + 1]
-                        sliced_route_b["coords"] = route_b_coords[j:]
+                        sliced_end_a["coords"] = end_a_coords[:i + 1]
+                        sliced_end_b["coords"] = end_b_coords[j:]
 
                         # Copy the current leg of network to add the route to extend to
-                        new_route = route_a.copy()
-                        new_route[-1] = sliced_route_a
-                        new_route.append(sliced_route_b)
+                        new_leg_a = leg_a.copy()
+                        new_leg_b = leg_b.copy()
 
-                        results.append(new_route)
+                        new_leg_a[-1] = sliced_end_a
+                        new_leg_b[0] = sliced_end_b
+
+                        # Add the new legs as connected routes
+                        connected_route = new_leg_a + new_leg_b
+                        results.append(connected_route)
+                        
                         connected = True
                         break
                 

@@ -1,3 +1,4 @@
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.network.urlrequest import UrlRequest
 from kivy.utils import platform
@@ -40,6 +41,9 @@ TOP_SCREEN_LOADING_BAR = '''
     height: dp(4)
 '''
 
+# Timeout timer in seconds
+TIMEOUT = 300
+
 
 # Bring the widget that will be built in the kivy string to python itself
 class TopScreenLoadingBar(MDProgressBar):
@@ -59,15 +63,27 @@ class SendRequest():
         self.loading_indicator.start()
 
         # Sends a non-blocking HTTP request with the provided info/data
-        UrlRequest(
+        self.request = UrlRequest(
             url=url,
             req_headers=HEADERS if headers is None else headers,
             req_body=body,
             on_success=lambda request, result, callback=on_success: self.on_response(request, result, callback),
             on_failure=lambda request, result, on_failure=on_failure, on_success=on_success: self.on_auto_refresh(request, result, on_failure, on_success) if auto_refresh else self.on_response(request, result, on_failure),
+            on_cancel=lambda: print("yooo"),
         )
 
+        Clock.schedule_once(lambda _: self.handle_timeout(on_failure), TIMEOUT)
 
+
+    # Handle cases where connection timed out
+    def handle_timeout(self, on_failure):
+        self.request.cancel()
+        result = {
+            "msg": "Connection timed out.",
+        }
+        self.on_response(self.request, result, on_failure)
+    
+    
     # Called when HTTP request failed due to access token being expired. 
     # Automatically gets a new access token then resends the failed http request.
     def on_auto_refresh(self, request, result, on_failure, on_success):
