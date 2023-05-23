@@ -239,7 +239,7 @@ def get_route():
                 continue
 
             # Get the shortest path from the previous node to the current node
-            path = nx.shortest_path(graph, route_nodes[-1], nearest_node, weight="distance")
+            path = nx.shortest_path(graph, route_nodes[-1], nearest_node, weight="length")
 
             # Add the path to the list of route nodes
             route_nodes += path[1:]
@@ -420,7 +420,7 @@ def get_directions():
     
     # Create a graph that contains both the user's location and their destination
     center = get_center([origin, destination])
-    radius = (get_distance(origin, destination) * 1500) // 2
+    radius = get_distance(origin, center) * 1200
 
     try:
         graph = ox.graph_from_point(center, dist=radius, network_type="all")
@@ -486,22 +486,31 @@ def get_complete_routes(candidate_routes, start, end):
     complete_routes = []
 
     # Get all the route combinations that pass through the starting node and ending node
-    start_routes = []
-    end_routes = []
+    start_routes = {}
+    end_routes = {}
+
     for candidate_route in candidate_routes:
         for i, coord in enumerate(candidate_route["coords"]):
             if start == coord:
                 route = candidate_route.copy()
                 route["coords"] = route["coords"][i:]
-                start_routes.append(route)
+                
+                id = route["id"]
+                existing_route = start_routes.get(id, None)
+                if existing_route is None or len(route["coords"]) < len(existing_route["coords"]):
+                    start_routes[id] = route
 
             if end == coord:
                 route = candidate_route.copy()
                 route["coords"] = route["coords"][:i + 1]
-                end_routes.append(route)
+                
+                id = route["id"]
+                existing_route = end_routes.get(id, None)
+                if existing_route is None or len(route["coords"]) < len(existing_route["coords"]):
+                    end_routes[id] = route
     
     # Handle cases where one transport vehicle is already enough to get to destination
-    for start_route in start_routes:
+    for start_route in start_routes.values():
         # Iterate each coordinates of routes that pass through the starting node
         # then check if one of them also happens to be the ending node
         for i, coord in enumerate(start_route["coords"]):
@@ -519,8 +528,8 @@ def get_complete_routes(candidate_routes, start, end):
 
     # Create network of route combinations that stem from the starting and ending node
     # Additionally, store all the candidate routes as one whole network
-    start_network = [[route] for route in start_routes]
-    end_network = [[route] for route in end_routes]
+    start_network = [[route] for route in start_routes.values()]
+    end_network = [[route] for route in end_routes.values()]
     full_network = [[route] for route in candidate_routes]
 
     # Limit the size of the networks to only 5 to avoid overloading the server ram and cpu
