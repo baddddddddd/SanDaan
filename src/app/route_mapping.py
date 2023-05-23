@@ -39,6 +39,7 @@ MDBottomNavigationItem:
             zoom: 15
             loading_bar: loading
             confirm_route_button: confirm_route_button
+            delete_route_button: delete_route_button
             app: app
 
         TopScreenLoadingBar:
@@ -46,6 +47,14 @@ MDBottomNavigationItem:
 
         SearchBar:
             map: map
+    
+        MDFloatingActionButton:
+            id: delete_route_button
+            icon: "delete"
+            pos_hint: {"center_x": 0.875, "center_y": 0.43}
+            disabled: True
+            on_release:
+                map.delete_route()
 
         MDFloatingActionButton:
             id: confirm_route_button
@@ -143,6 +152,7 @@ class RouteInformation(BoxLayout):
 class RouteMapping(InteractiveMap):
     # Store reference to the "Confirm Route" button
     confirm_route_button = ObjectProperty(None)
+    delete_route_button = ObjectProperty(None)
     app = ObjectProperty(None)
 
 
@@ -185,6 +195,7 @@ class RouteMapping(InteractiveMap):
         self.route_information.bind(height=self.update_dialog_height)
 
         self.route_addresses = []
+        self.prev_graphed_route = None
     
         # Create a tutorial message for the route mapping manual
         tutorial_message = '''1. Place pins (double tap) to trace the path that the transport route takes
@@ -245,6 +256,9 @@ class RouteMapping(InteractiveMap):
 
             if len(self.graphed_route) > 1:
                 self.draw_route(self.graphed_route)
+                self.confirm_route_button.disabled = False
+                self.delete_route_button.disabled = False
+
 
 
     # Update the dialog height depending on the height of its children so that it all fits inside
@@ -330,6 +344,7 @@ class RouteMapping(InteractiveMap):
 
         # Disable the "Confirm Route" button and set the flag variable
         self.confirm_route_button.disabled = True
+        self.delete_route_button.disabled = True
         self.waiting_for_route = True
 
 
@@ -363,7 +378,12 @@ class RouteMapping(InteractiveMap):
             self.redraw_route()
 
         # Re-enable the "Confirm Route" button if there is a graphed route
-        self.confirm_route_button.disabled = len(self.graphed_route) < 2
+        if len(self.graphed_route) < 2:
+            self.confirm_route_button.disabled = True
+            self.delete_route_button.disabled = True
+        else:
+            self.confirm_route_button.disabled = False
+            self.delete_route_button.disabled = False
         self.waiting_for_route = False
 
 
@@ -375,6 +395,7 @@ class RouteMapping(InteractiveMap):
         if len(self.pins) < 2:
             self.remove_route()
             self.confirm_route_button.disabled = True
+            self.delete_route_button.disabled = True
             return
         
         if self.removed_pin_index == len(self.pins) and self.prev_graphed_route is not None:
@@ -401,6 +422,7 @@ class RouteMapping(InteractiveMap):
         
         # Disable the "Confirm Route" button and set the flag that the app is waiting for response
         self.confirm_route_button.disabled = True
+        self.delete_route_button.disabled = True
         self.waiting_for_route = True
 
 
@@ -411,7 +433,12 @@ class RouteMapping(InteractiveMap):
         self.draw_route(result["route"])
 
         # Re-enable the "Confirm Route" button if there is a graphed route
-        self.confirm_route_button.disabled = len(self.graphed_route) < 2
+        if len(self.graphed_route) < 2:
+            self.confirm_route_button.disabled = True
+            self.delete_route_button.disabled = True
+        else:
+            self.confirm_route_button.disabled = False
+            self.delete_route_button.disabled = False
         self.waiting_for_route = False
 
 
@@ -434,7 +461,13 @@ class RouteMapping(InteractiveMap):
         self.add_widget(self.removed_pin)
 
         # Re-enable the "Confirm Route" button if there is a graphed route
-        self.confirm_route_button.disabled = len(self.graphed_route) < 2
+        if len(self.graphed_route) < 2:
+            self.confirm_route_button.disabled = True
+            self.delete_route_button.disabled = True
+        else:
+            self.confirm_route_button.disabled = False
+            self.delete_route_button.disabled = False
+
         self.waiting_for_route = False
 
 
@@ -562,10 +595,12 @@ class RouteMapping(InteractiveMap):
 
         self.pins = []
         self.remove_route()
+        self.prev_graphed_route = None
 
         # Clear route information
         self.route_information = RouteInformation(self.confirmation_button)
         self.confirm_route_button.disabled = True
+        self.delete_route_button.disabled = True
 
 
     # Called when uploading the route failed
@@ -579,3 +614,20 @@ class RouteMapping(InteractiveMap):
         # Re-enable the "OK" button to allow reuploading the route
         self.confirmation_button.disabled = False
         
+
+    def delete_route(self):
+        for pin in self.pins:
+            self.remove_marker(pin)
+
+        self.pins = []
+        self.remove_route()
+        self.prev_graphed_route = None
+
+        self.confirm_route_button.disabled = True
+        self.delete_route_button.disabled = True
+
+        # Clear backup of pins and route
+        try:
+            self.app.cache.delete("backup")
+        except KeyError:
+            pass
