@@ -430,8 +430,10 @@ class MainApp(MDApp):
     # Called when account creation failed. Shows the user what went wrong
     def show_signup_error(self, result):
         # Change the label text in the UI to contain the error message
-        error_message = result.get("msg", None)
-        self.signup_warning.text = error_message if error_message is not None else "Something went wrong"
+        unknown_error_message = "An unknown error occured."
+        error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
+        
+        self.signup_warning.text = error_message
 
 
     # Called when user submits their login credentials through the login screen
@@ -490,8 +492,10 @@ class MainApp(MDApp):
     # Called when login failed and shows the user what went wrong
     def show_login_error(self, result):
         # Change the label text that shows errors to contain the error message
-        error_message = result.get("msg", None)
-        self.login_warning.text = error_message if error_message is not None else "Something went wrong"
+        unknown_error_message = "An unknown error occured."
+        error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
+        
+        self.login_warning.text = error_message
 
 
 if __name__ == "__main__":

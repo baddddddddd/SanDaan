@@ -304,10 +304,12 @@ class RouteMapping(InteractiveMap):
     # Called when the HTTP request for getting the shortest path between a list of coordinates failed
     # Removes the last pin, which caused the error, from the map
     def remove_last_pin(self, result):
+        unknown_error_message = "An unknown error occured."
+        error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
         self.show_popup_dialog(
             "Failed to connect pins",
             MDLabel(
-                text=result.get("msg", "An unknown error occured.")
+                text=error_message,
             ),
         )
 
@@ -377,10 +379,13 @@ class RouteMapping(InteractiveMap):
     # Undos the pin removal, and show the user what went wrong
     def undo_pin_remove(self, result):
         # Display a dialog that shows what went wrong
+        unknown_error_message = "An unknown error occured."
+        error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
+        
         self.show_popup_dialog(
             "Failed to connect pins",
             MDLabel(
-                text=result.get("msg", "An unknown error occured.")
+                text=error_message,
             ),
         )
         
@@ -520,7 +525,8 @@ class RouteMapping(InteractiveMap):
     # Called when uploading the route failed
     def handle_upload_failure(self, result):
         # Show dialog that the upload failed and why it failed
-        error_message = result.get("msg", "An unknown error occured.")
+        unknown_error_message = "An unknown error occured."
+        error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
         content_cls = MDLabel(text=error_message)
         self.show_popup_dialog("Route upload failed", content_cls)
 

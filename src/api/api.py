@@ -221,10 +221,12 @@ def get_route():
     # Store the path by getting the list of intersection or nodes it passes through
     route_nodes = []
     
-    # Create a graph of network of streets 
-    graph = ox.graph_from_point(center, dist=farthest_dist * 1300, network_type="drive")
+    
 
     try:
+        # Create a graph of network of streets 
+        graph = ox.graph_from_point(center, dist=farthest_dist * 1300, network_type="all")
+
         # Iterate each geological point from the list and get the shortest path to each other
         for coord in pins:
             # Find the nearest node or intersection from each geological point
@@ -422,57 +424,63 @@ def get_directions():
     center = get_center([origin, destination])
     radius = (get_distance(origin, destination) * 1500) // 2
 
-    graph = ox.graph_from_point(center, dist=radius, network_type="drive")
+    try:
+        graph = ox.graph_from_point(center, dist=radius, network_type="all")
 
-    # Convert the user's location and their destination to graph nodes
-    # to be used for finding the shortest path
-    origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
-    destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
-    
-    path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
-    shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
+        # Convert the user's location and their destination to graph nodes
+        # to be used for finding the shortest path
+        origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
+        destination_node = ox.distance.nearest_nodes(graph, destination[1], destination[0])
+        
+        path = nx.shortest_path(graph, origin_node, destination_node, weight="time")
+        shortest_route = [[graph.nodes[node]['y'], graph.nodes[node]['x']] for node in path]
 
-    # Using the shortest path computed, get the route that the user must walk
-    # in order to reach the nearest main road or intersection where transport vehicles drive through
-    # from their current location as well as to reach their final locations
-    start_walk = None
-    for i, node in enumerate(shortest_route):
-        if node in route_network_coords:
-            start_walk = shortest_route[:i + 1]
-            break
+        # Using the shortest path computed, get the route that the user must walk
+        # in order to reach the nearest main road or intersection where transport vehicles drive through
+        # from their current location as well as to reach their final locations
+        start_walk = None
+        for i, node in enumerate(shortest_route):
+            if node in route_network_coords:
+                start_walk = shortest_route[:i + 1]
+                break
 
-    end_walk = None
-    for i, node in reversed(list(enumerate(shortest_route))):
-        if node in route_network_coords:
-            end_walk = shortest_route[i:]
-            break
+        end_walk = None
+        for i, node in reversed(list(enumerate(shortest_route))):
+            if node in route_network_coords:
+                end_walk = shortest_route[i:]
+                break
 
-    # If no walking routes were found, the user's location and the destinationn is not connected
-    # by any network of streets, therefore, return empty data to the client
-    if start_walk is None or end_walk is None:
+        # If no walking routes were found, the user's location and the destinationn is not connected
+        # by any network of streets, therefore, return empty data to the client
+        if start_walk is None or end_walk is None:
+            return jsonify(
+                start_walk=[],
+                end_walk=[],
+                routes=[],
+            ), 200 
+        
+        # Get the location where the user will start walking and end walking
+        start = start_walk[-1]
+        end = end_walk[0]
+
+        # Get the shortest route combinations from the list of candidate routes that connect
+        # the user's current location to their destination
+        routes = get_complete_routes(candidate_routes, start, end)
+
+        # If none was found, return an empty list
+        if routes is None:
+            routes = []
+
         return jsonify(
-            start_walk=[],
-            end_walk=[],
-            routes=[],
-        ), 200 
+            start_walk=start_walk,
+            end_walk=end_walk,
+            routes=routes,
+        ), 200
     
-    # Get the location where the user will start walking and end walking
-    start = start_walk[-1]
-    end = end_walk[0]
-
-    # Get the shortest route combinations from the list of candidate routes that connect
-    # the user's current location to their destination
-    routes = get_complete_routes(candidate_routes, start, end)
-
-    # If none was found, return an empty list
-    if routes is None:
-        routes = []
-
-    return jsonify(
-        start_walk=start_walk,
-        end_walk=end_walk,
-        routes=routes,
-    ), 200
+    except:
+        return jsonify(
+            msg="There is no route that connects your current and target location",
+        ), 200
 
 
 # Helper function for obtaining all the route combinations that connect the user's location to the destination 

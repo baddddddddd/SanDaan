@@ -366,9 +366,12 @@ class RouteFinding(InteractiveMap):
     # Called when there was an error requesting for directions from the SanDaan API
     # Shows the error message as a popup dialog
     def show_route_finding_error(self, result):
+        unknown_error_message = "An unknown error occured."
+        error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
+        
         self.show_popup_dialog(
             title="Route finding error",
             content=MDLabel(
-                text=result.get("msg", "An unknown error occured."),
+                text=error_message,
             ),
         )
