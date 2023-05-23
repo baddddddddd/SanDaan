@@ -33,7 +33,7 @@
     <li><a href="#-planned-features">Planned Features</a></li>
     <li><a href="#-technical-requirements">Technical Requirements</a></li>
     <li><a href="#-scope-of-the-project">Scope of the Project</a></li>
-    <li><a href="##running-the-app">Developer Section</a></li>
+    <li><a href="#running-the-app">Developer Section</a></li>
   </ol>
 </details>
 
