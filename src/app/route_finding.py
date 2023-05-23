@@ -117,6 +117,8 @@ class RouteFinding(InteractiveMap):
         self.start_walk = None
         self.end_walk = None
 
+        self.waiting_for_directions = False
+
         tutorial_message = '''1. Place a pin (double tap) at the destination that you want to go to.
 2. Press the "Directions" (arrow) button then wait for the results.
 3. A list of different route combinations will show up. Select the route combination that you want to view.
@@ -171,6 +173,9 @@ class RouteFinding(InteractiveMap):
 
     # Called when user double taps on the map, which places a pin
     def place_pin(self, coordinate: Coordinate):
+        if self.waiting_for_directions:
+            return
+        
         # Check if there are existing pins places, if yes, remove first
         if self.pinned_location is not None:
             self.remove_pin()
@@ -190,6 +195,9 @@ class RouteFinding(InteractiveMap):
 
     # Called when user clicks the "Delete" button of map pins
     def remove_pin(self):
+        if self.waiting_for_directions:
+            return
+        
         self.viable_routes = None
 
         # Check if there is a graphed route associated with the pin
@@ -214,6 +222,9 @@ class RouteFinding(InteractiveMap):
             return
 
         self.get_origin_address()
+
+        self.directions_button.disabled = True
+        self.waiting_for_directions = True
 
 
     # Gets the address of the current location of the user
@@ -295,7 +306,10 @@ class RouteFinding(InteractiveMap):
 
 
     # Called when successfully fetched directions from the SanDaan API
-    def show_viable_routes(self, result):   
+    def show_viable_routes(self, result):
+        self.directions_button.disabled = False
+        self.waiting_for_directions = False
+
         # Get the results from the HTTP request     
         self.viable_routes = result["routes"]
         self.start_walk = result["start_walk"]
@@ -385,6 +399,9 @@ class RouteFinding(InteractiveMap):
     # Called when there was an error requesting for directions from the SanDaan API
     # Shows the error message as a popup dialog
     def show_route_finding_error(self, result):
+        self.directions_button.disabled = False
+        self.waiting_for_directions = False
+
         unknown_error_message = "An unknown error occured."
         error_message = result.get("msg", unknown_error_message) if isinstance(result, dict) else unknown_error_message
         
