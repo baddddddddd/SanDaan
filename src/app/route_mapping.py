@@ -320,6 +320,7 @@ class RouteMapping(InteractiveMap):
     # Called when the HTTP request for getting the shortest path between a list of coordinates succeeded
     # Connects the last pin from the previous pin
     def connect_route(self, result):  
+        self.prev_graphed_route = list(self.graphed_route)
         # Check if the number of pins is exactly two, if yes, draw the route from scratch
         # If no, connect the new route to the existing graphed route
         if len(self.pins) == 2:
@@ -342,6 +343,12 @@ class RouteMapping(InteractiveMap):
         if len(self.pins) < 2:
             self.remove_route()
             self.confirm_route_button.disabled = True
+            return
+        
+        if self.removed_pin_index == len(self.pins) and self.prev_graphed_route is not None:
+            self.graphed_route = list(self.prev_graphed_route)
+            self.prev_graphed_route = None
+            self.redraw_route()
             return
         
         # Endpoint for finding the shortest path between a list of coordinates through the SanDaan API
@@ -367,6 +374,7 @@ class RouteMapping(InteractiveMap):
 
     # Redraws the new route from the remaining pins
     def redraw_all(self, result):
+        self.prev_graphed_route = None
         self.remove_route()
         self.draw_route(result["route"])
 

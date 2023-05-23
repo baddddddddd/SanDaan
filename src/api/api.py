@@ -221,11 +221,9 @@ def get_route():
     # Store the path by getting the list of intersection or nodes it passes through
     route_nodes = []
     
-    
-
     try:
         # Create a graph of network of streets 
-        graph = ox.graph_from_point(center, dist=farthest_dist * 1300, network_type="all")
+        graph = ox.graph_from_point(center, dist=farthest_dist * 1200, network_type="all")
 
         # Iterate each geological point from the list and get the shortest path to each other
         for coord in pins:

@@ -225,15 +225,26 @@ class RouteFinding(InteractiveMap):
     # Function to request directions from the SanDaan API
     def get_directions(self, result, origin_address):
         # Get all the required data for requesting directions
-        destination_address = result["address"]
-        destination_address["city_id"] = result["place_id"]
+        try:
+            destination_address = result["address"]
+            destination_address["city_id"] = result["place_id"]
 
-        origin_region = origin_address["region"]
-        origin_state = origin_address["state"]
-        origin_city_id = origin_address["city_id"]
-        destination_region = destination_address["region"]
-        destination_state = destination_address["state"]
-        destination_city_id = destination_address["city_id"]
+            origin_region = origin_address["region"]
+            origin_state = origin_address["state"]
+            origin_city_id = origin_address["city_id"]
+            destination_region = destination_address["region"]
+            destination_state = destination_address["state"]
+            destination_city_id = destination_address["city_id"]
+            
+        except KeyError:
+            self.show_popup_dialog(
+                title="No routes found",
+                content=MDLabel(
+                    text="There is currently not enough map data to connect you to your destination.",
+                ),
+            )
+            return
+
 
         region = None
         state = None
