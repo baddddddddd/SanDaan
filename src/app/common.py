@@ -42,7 +42,7 @@ TOP_SCREEN_LOADING_BAR = '''
 '''
 
 # Timeout timer in seconds
-TIMEOUT = 300
+TIMEOUT = 10
 
 
 # Bring the widget that will be built in the kivy string to python itself
@@ -73,10 +73,14 @@ class SendRequest():
         )
 
         Clock.schedule_once(lambda _: self.handle_timeout(on_failure), TIMEOUT)
+        self.waiting_for_timeout = True
 
 
     # Handle cases where connection timed out
     def handle_timeout(self, on_failure):
+        if not self.waiting_for_timeout:
+            return
+        
         self.request.cancel()
         result = {
             "msg": "Connection timed out.",
@@ -87,6 +91,7 @@ class SendRequest():
     # Called when HTTP request failed due to access token being expired. 
     # Automatically gets a new access token then resends the failed http request.
     def on_auto_refresh(self, request, result, on_failure, on_success):
+        self.waiting_for_timeout = False
         # Checks for 401 Unauthorized HTTP status, which means the access token is invalid
         if request.resp_status == 401:
             url = f"{API_URL}/refresh"
@@ -125,6 +130,7 @@ class SendRequest():
     # Called when the HTTP Request was successful.
     # Stops the loading indicator for the HTTP request.
     def on_response(self, request, result, callback):
+        self.waiting_for_timeout = False
         self.loading_indicator.stop()
 
         if callback is not None:
