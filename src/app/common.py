@@ -3,10 +3,21 @@ from kivy.network.urlrequest import UrlRequest
 from kivy.utils import platform
 from kivymd.uix.progressbar import MDProgressBar
 
+import argparse
+
+# Create the command-line argument parser
+parser = argparse.ArgumentParser()
+
+# Add flags
+parser.add_argument("--online", action="store_true", help="Set the app to connect to the online server.")
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
 # Dynamically set the api url to send requests to depending on the development environment
 LOCALHOST = "http://127.0.0.1:5000"
 RENDER = "https://sandaan-api.onrender.com"
-API_URL = RENDER if platform == "android" else LOCALHOST
+API_URL = RENDER if platform == "android" or args.online else LOCALHOST
 
 # Set the headers to be used for communicating with the SanDaan API
 HEADERS = {

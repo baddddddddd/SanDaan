@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 0.1.0
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -402,7 +402,7 @@ ios.codesign.allowed = false
 
 
 [buildozer]
-
+android.release = true
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
 

@@ -147,3 +147,77 @@ To speed up and improve the development of the mobile application, the developer
 The aim of the project is to develop an app-based navigation system to help commuters in Batangas City access real-time information on public transportation schedules, traffic conditions, and alternative route suggestions. The app will be accessible to both public and private transportation users and will feature a community-powered planning feature for users to customize their own transport route based on their preferences.
 
 However, the accuracy of the data in the app, such as traffic and transportation schedules, is dependent on the reliability of the data sources. The app will only be available on Android devices, limiting the accessibility for some users who may not have access to this technology. Additionally, features such as lane guidance, street view, and voice command will not be included in the initial release of the app. These limitations will be taken into account during the development process, and efforts will be made to ensure the app is as reliable and accessible as possible.
+
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
+
+## Running the App
+### Windows and Linux
+1. Clone the repository in your machine
+```sh
+git clone https://github.com/baddddddddd/SanDaan.git
+cd SanDaan
+```
+2. Download all the dependencies (we recommend using a virtual environment before proceeding to this step)
+```sh
+pip install -r requirements.txt
+```
+3. Run the app
+```sh
+python src/app/main.py -- --online
+```
+### Android 11 and older
+1. Download the .apk file from our releases page. Check out our [latest release](https://github.com/baddddddddd/SanDaan/releases/tag/v0.1.0).
+2. Allow installation from unknown sources in your android device then install the .apk.
+3. Open the app once to allow requested permissions then close.
+4. Open the app again and enjoy :D
+
+**Disclaimers**
+
+* Android 12 and newer versions of Android is currently not supported by the latest release.
+* The app is also not supported for Android devices that do not have GPS Location Tracking.
+* If the app crashes upon logging in or is stuck in the loading screen, this means that the server is turned off or sleeping. Please contact the developers to turn on or wake up the server.
+
+## Hosting the API server locally
+Optionally, you can host the API server locally in your machine.
+### Linux
+1. Clone the repository in your machine
+```sh
+git clone https://github.com/baddddddddd/SanDaan.git
+```
+2. Navigate to the API folder
+```sh
+cd SanDaan/src/api
+```
+3. Download all the dependencies (we recommend using a virtual environment before proceeding to this step)
+```sh
+pip install -r requirements.txt
+```
+4. Run the server using gunicorn
+```sh
+gunicorn api:app -b 0.0.0.0:5000 --timeout 300
+```
+### Docker and Non-Linux Machines
+1. Download and install Docker in your machine.
+2. Create the docker image.
+```sh
+docker build -t sandaan-api .
+```
+3. Run the docker image.
+```sh
+docker run -p 5000:5000 sandaan-api
+```
+### Connecting the app to the locally hosted server
+1. Repeat the steps from [Running the App](#running-the-app) section except for the last step.
+2. Run the app without the "--online" argument.
+```sh
+python src/app/main.py
+```
+
+## Building the Android app from source
+Building the app from source is only supported on linux machines.
+1. Download and install "buildozer" in your linux machine as well as all of its dependencies.
+2. Build the .apk using buildozer
+```sh
+buildozer android debug
+```
+3. Navigate to the "bin" directory to find the .apk
