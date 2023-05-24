@@ -184,6 +184,12 @@ python src/app/main.py -- --online
 
 ## Hosting the API server locally
 Optionally, you can host the API server locally in your machine.
+
+**Disclaimer**
+
+Running the server requires having the environment variables to connect to our database. In order to obtain these environment variables, please contact the developers. Optionally, you can host your own database
+with the database schema (src/api/db_schema.sql) that we provided.
+
 ### Linux
 1. Clone the repository in your machine
 ```sh
