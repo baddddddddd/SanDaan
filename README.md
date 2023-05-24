@@ -34,6 +34,7 @@
     <li><a href="#-technical-requirements">Technical Requirements</a></li>
     <li><a href="#-scope-of-the-project">Scope of the Project</a></li>
     <li><a href="#running-the-app">Developer Section</a></li>
+    <li><a href="#presentation">Presentation</a></li>
   </ol>
 </details>
 
@@ -233,3 +234,9 @@ Building the app from source is only supported on linux machines.
 buildozer android debug
 ```
 3. Navigate to the "bin" directory to find the .apk
+
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
+
+## Presentation
+
+Video Presentation YouTube Link: https://www.youtube.com/watch?v=4sIvN9gS_E4
