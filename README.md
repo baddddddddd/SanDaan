@@ -30,11 +30,12 @@
     <li><a href="#-purpose">Purpose</a></li>
     <li><a href="#-objectives">Objectives</a></li>
     <li><a href="#-significance">Significance</a></li>
-    <li><a href="#-planned-features">Planned Features</a></li>
+    <li><a href="#-features">Features</a></li>
     <li><a href="#-technical-requirements">Technical Requirements</a></li>
     <li><a href="#-scope-of-the-project">Scope of the Project</a></li>
-    <li><a href="#running-the-app">Developer Section</a></li>
+    <li><a href="#uml-diagram">UML Diagram</a></li>
     <li><a href="#presentation">Presentation</a></li>
+    <li><a href="#running-the-app">Developer Section</a></li>
   </ol>
 </details>
 
@@ -157,6 +158,14 @@ However, the accuracy of the data in the app, such as traffic and transportation
 ## UML Diagram
 ![UML Diagram](https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/images/UML-Diagram.png)
 
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
+
+## Presentation
+
+Video Presentation YouTube Link: https://www.youtube.com/watch?v=4sIvN9gS_E4
+
+<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
+
 ## Running the App
 ### Windows and Linux
 1. Clone the repository in your machine
@@ -234,9 +243,3 @@ Building the app from source is only supported on linux machines.
 buildozer android debug
 ```
 3. Navigate to the "bin" directory to find the .apk
-
-<hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
-
-## Presentation
-
-Video Presentation YouTube Link: https://www.youtube.com/watch?v=4sIvN9gS_E4
