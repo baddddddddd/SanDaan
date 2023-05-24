@@ -420,7 +420,7 @@ def get_directions():
     
     # Create a graph that contains both the user's location and their destination
     center = get_center([origin, destination])
-    radius = get_distance(origin, center) * 1200
+    radius = get_distance(origin, center) * 5000
 
     try:
         graph = ox.graph_from_point(center, dist=radius, network_type="all")
