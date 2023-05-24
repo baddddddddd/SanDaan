@@ -172,7 +172,7 @@ pip install -r requirements.txt
 python src/app/main.py -- --online
 ```
 ### Android 11 and older
-1. Download the .apk file from our releases page. Check out our [latest release](https://github.com/baddddddddd/SanDaan/releases/tag/v0.1.0).
+1. Download the .apk file from our releases page. Check out our [latest release](https://github.com/baddddddddd/SanDaan/releases/latest).
 2. Allow installation from unknown sources in your android device then install the .apk.
 3. Open the app once to allow requested permissions then close.
 4. Open the app again and enjoy :D
