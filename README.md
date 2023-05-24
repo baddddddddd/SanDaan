@@ -155,6 +155,9 @@ However, the accuracy of the data in the app, such as traffic and transportation
 
 <hr class="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700">
 
+## UML Diagram
+![UML Diagram](https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/images/UML-Diagram.png)
+
 ## Running the App
 ### Windows and Linux
 1. Clone the repository in your machine
