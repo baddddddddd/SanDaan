@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://raw.githubusercontent.com/baddddddddd/bourgeoisie/main/images/logo1_anim.gif">
-    <img src="images/logo1_anim.gif" alt="Logo" width="240" height="240">
+    <img src="images/logo.png" alt="Logo" width="240" height="240">
   </a>
 
   <h1 align="center">San Daan?</h1>
@@ -100,8 +100,6 @@ This system makes public transportation more accessible and efficient for users 
 * 🚌 **Commuters**: They are significant contributors to carbon emissions, and providing them with information on environmentally friendly transportation options can help to mitigate their environmental impact. Additionally, commuting can be a stressful experience, and this program can alleviate some of that stress by offering personalized and efficient transit options.
 
 * 🛫 **Tourists**: In unfamiliar cities, tourists frequently rely on public transportation to get around and may need to be made aware of more environmentally friendly options. This resource can assist tourists in choosing the most effective mode of transportation to get them to where they're going and minimize the impact of their travels on the environment.
-
-* 🚗 **Drivers**: Even if unfamiliar with sustainable transportation options, they may find this program beneficial in reducing their carbon footprint. They could reduce their carbon footprint by supporting different forms of transportation, including biking or public transportation, and choosing the most efficient route. With the help of this program, drivers may be encouraged to choose more environmentally friendly options.
 
 * 🚕 **Public Transportation Drivers**: By providing recommendations for more efficient routes or forms of transportation, this program can also help public transportation drivers. They can help create more sustainable transportation systems by conserving fuel and optimizing their routes more efficiently.
 
