@@ -191,7 +191,12 @@ python src/app/main.py -- --online
 
 * Android 12 and newer versions of Android is currently not supported by the latest release.
 * The app is also not supported for Android devices that do not have GPS Location Tracking.
-* If the app crashes upon logging in or is stuck in the loading screen, this means that the server is turned off or sleeping. Please contact the developers to turn on or wake up the server.
+* If the app closes automatically or is stuck in the loading screen, this means that the server is turned off or sleeping. Please contact the developers to turn on or wake up the server. Additionally, you can wake the server up yourself by visiting [this link](https://sandaan-api.onrender.com/ping) and wait for the page to load.
+
+## Waking up the server
+If the app is stuck in the loading screen, chances are the server is turned off due to limited resources or is sleeping. 
+Visit [this link](https://sandaan-api.onrender.com/ping) and wait for the page to load to wake up the server. 
+If the page still failed to respond, the server is turned off. Please contact the developers in case this happens.
 
 ## Hosting the API server locally
 Optionally, you can host the API server locally in your machine.
