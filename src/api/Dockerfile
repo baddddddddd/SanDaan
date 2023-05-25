@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV WEB_CONCURRENCY=2
+ENV WEB_CONCURRENCY=1
 
 ENV FLASK_APP=api
 
