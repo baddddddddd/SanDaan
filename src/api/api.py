@@ -593,7 +593,7 @@ def ping():
 
 
 # Function to ping the server
-def send_ping():
+def ping_server():
     url = "https://sandaan-api.onrender.com/ping"
     print("Sending ping to server...")
     response = requests.get(url)
@@ -615,8 +615,9 @@ def ping_database():
 
 # Periodically call the function that sends a ping to the server using a scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(send_ping, "interval", minutes=12)
+scheduler.add_job(ping_server, "interval", minutes=5)
 scheduler.add_job(ping_database, "interval", days=5)
 scheduler.start()
 
+ping_server()
 ping_database()
