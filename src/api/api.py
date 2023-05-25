@@ -38,6 +38,11 @@ cursor = db.cursor()
 # Set the timezone to Philippines
 ph_timezone = pytz.timezone('Asia/Manila')
 
+# Load the graph containing the network of roads and streets in the Philippines
+print("Loading graph...")
+graph = ox.load_graphml("batangas_city.graphml")
+
+
 # Execute queries by force to handle cases where the database connection timed out
 def execute_query(query, params = tuple(), force=True, count=0):
     if force and count < 3:
@@ -209,22 +214,10 @@ def get_route():
     # Get the geological coordinates of all the pins
     pins = data.get("pins", None)
 
-    # Compute the distance of the farthest point from the center point
-    center = get_center(pins)
-    farthest_dist = 0
-    for coord in pins:
-        dist = get_distance(center, coord)
-
-        if dist > farthest_dist:
-            farthest_dist = dist
-
     # Store the path by getting the list of intersection or nodes it passes through
     route_nodes = []
     
     try:
-        # Create a graph of network of streets 
-        graph = ox.graph_from_point(center, dist=farthest_dist * 1200, network_type="all")
-
         # Iterate each geological point from the list and get the shortest path to each other
         for coord in pins:
             # Find the nearest node or intersection from each geological point
@@ -417,14 +410,8 @@ def get_directions():
         for coord in route["coords"]:
             if coord not in route_network_coords:
                 route_network_coords.append(coord)
-    
-    # Create a graph that contains both the user's location and their destination
-    center = get_center([origin, destination])
-    radius = get_distance(origin, center) * 5000
 
     try:
-        graph = ox.graph_from_point(center, dist=radius, network_type="all")
-
         # Convert the user's location and their destination to graph nodes
         # to be used for finding the shortest path
         origin_node = ox.distance.nearest_nodes(graph, origin[1], origin[0])
